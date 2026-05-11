@@ -15,10 +15,28 @@ function Step2Interview({ interviewData, onFinish }) {
   const { interviewId, questions, userName } = interviewData;
   const [interviewPhase, setInterviewPhase] = useState('entry'); // 'entry', 'check', 'active'
   const [entryCountdown, setEntryCountdown] = useState(5);
-  const [systemChecks, setSystemChecks] = useState({ mic: 'pending' }); // 'pending', 'passed', 'failed'
+  const [systemChecks, setSystemChecks] = useState({ mic: 'pending', error: '' }); // 'pending', 'passed', 'failed'
   const [isPaused, setIsPaused] = useState(false);
   const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'saved'
+  const [voiceGender, setVoiceGender] = useState("female");
+  const [selectedVoice, setSelectedVoice] = useState(null);
+  const [isAIPlaying, setIsAIPlaying] = useState(false);
+  const videoRef = useRef(null);
+  const [subtitle, setSubtitle] = useState("");
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [isIntroPhase, setIsIntroPhase] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [answer, setAnswer] = useState("");
+  const recognitionRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [volumeLevel, setVolumeLevel] = useState(0);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const mediaStreamRef = useRef(null);
 
+  const currentQuestion = questions ? questions[currentIndex] : null;
   // Phase 1: Entry Countdown
   useEffect(() => {
     if (interviewPhase === 'entry') {
@@ -39,18 +57,76 @@ function Step2Interview({ interviewData, onFinish }) {
   // Phase 2: System Checks
   useEffect(() => {
     if (interviewPhase === 'check') {
-      // Test Microphone
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+         setSystemChecks({ mic: 'failed', error: 'Your browser does not support audio capture.' });
+         return;
+      }
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then((stream) => {
-          setSystemChecks({ mic: 'passed' });
-          // Stop the stream immediately, we just needed permission
+          setSystemChecks({ mic: 'passed', error: '' });
           stream.getTracks().forEach(track => track.stop());
         })
-        .catch(() => {
-          setSystemChecks({ mic: 'failed' });
+        .catch((err) => {
+          setSystemChecks({ mic: 'failed', error: err.message || 'Permission denied' });
         });
     }
   }, [interviewPhase]);
+
+  // Audio Visualizer Logic
+  useEffect(() => {
+    let animationFrameId;
+
+    const startAudioVisualizer = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContextRef.current = audioContext;
+        
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyserRef.current = analyser;
+        
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        const updateVolume = () => {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / dataArray.length;
+          setVolumeLevel(average);
+          animationFrameId = requestAnimationFrame(updateVolume);
+        };
+        
+        updateVolume();
+      } catch (err) {
+        console.error("Mic access denied for visualizer", err);
+      }
+    };
+
+    if (isMicOn && interviewPhase === 'active') {
+      startAudioVisualizer();
+    } else {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+      setVolumeLevel(0);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    }
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [isMicOn, interviewPhase]);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -90,12 +166,19 @@ function Step2Interview({ interviewData, onFinish }) {
       utterance.onstart = () => {
         setIsAIPlaying(true);
         stopMic();
-        videoRef.current?.play();
+        const playPromise = videoRef.current?.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            // Ignore AbortError caused by pause() interrupting play()
+          });
+        }
       };
 
       utterance.onend = () => {
-        videoRef.current?.pause();
-        if (videoRef.current) videoRef.current.currentTime = 0;
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.currentTime = 0;
+        }
         setIsAIPlaying(false);
         if (isMicOn) startMic();
         setTimeout(() => { setSubtitle(""); resolve(); }, 300);
@@ -312,9 +395,11 @@ function Step2Interview({ interviewData, onFinish }) {
               {systemChecks.mic === 'failed' && <span className='text-red-500 text-sm font-semibold'>Denied</span>}
             </div>
             {systemChecks.mic === 'failed' && (
-              <p className='text-xs text-red-500 bg-red-50 p-3 rounded-lg'>
-                We cannot access your microphone. Please allow microphone permissions in your browser to continue.
-              </p>
+              <div className='text-xs text-red-600 bg-red-50 p-4 rounded-xl border border-red-200'>
+                <p className='font-bold text-sm mb-1'>Microphone Access Denied</p>
+                <p className='mb-2'>Error: {systemChecks.error}</p>
+                <p className='font-medium'>Please click the lock icon in your browser's address bar, allow microphone permissions, and refresh the page to continue.</p>
+              </div>
             )}
           </div>
           <button
@@ -432,14 +517,29 @@ function Step2Interview({ interviewData, onFinish }) {
 
           {!feedback ? (
             <div className='flex items-center gap-4 mt-6'>
-              <motion.button
-                onClick={toggleMic}
-                whileTap={{ scale: 0.9 }}
-                className={`w-14 h-14 flex items-center justify-center rounded-2xl shadow-sm transition-colors border ${isMicOn ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
-                title={isMicOn ? "Mute Microphone" : "Unmute Microphone"}
-              >
-                {isMicOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
-              </motion.button>
+                <div className='flex items-center gap-2'>
+                  <motion.button
+                    onClick={toggleMic}
+                    whileTap={{ scale: 0.9 }}
+                    className={`w-14 h-14 flex items-center justify-center rounded-2xl shadow-sm transition-colors border ${isMicOn ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                    title={isMicOn ? "Mute Microphone" : "Unmute Microphone"}
+                  >
+                    {isMicOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
+                  </motion.button>
+                  
+                  {isMicOn && (
+                    <div className="flex gap-1 items-center h-14 px-4 bg-gray-100 rounded-2xl border border-gray-200" title="Audio Visualizer">
+                      {[...Array(6)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          animate={{ height: Math.max(4, (volumeLevel / 255) * 32 * (Math.random() * 0.5 + 0.5)) }}
+                          className="w-1.5 bg-green-500 rounded-full"
+                          transition={{ type: "tween", duration: 0.1 }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
               <motion.button
                 onClick={submitAnswer}

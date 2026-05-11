@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microphone Debug Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+    button { padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer; background: black; color: white; border: none; border-radius: 8px; }
+    #log { margin-top: 20px; padding: 15px; background: #f3f3f3; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;}
+    .success { color: green; font-weight: bold; }
+    .error { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Microphone Debug Test</h2>
+  <p>Click the button below to test if <code>navigator.mediaDevices.getUserMedia</code> successfully returns a valid audio stream in your current browser.</p>
+  
+  <button id="testBtn">Test Microphone Access</button>
+
+  <div id="log">Awaiting test...</div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    
+    function log(msg, type = '') {
+      const p = document.createElement('div');
+      p.className = type;
+      p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logEl.appendChild(p);
+    }
+
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      logEl.innerHTML = ''; // Clear log
+      log("Initializing MediaDevices API check...");
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        log("FAIL: navigator.mediaDevices.getUserMedia is NOT supported in this browser.", "error");
+        return;
+      }
+
+      try {
+        log("Requesting audio permissions...");
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          log(`SUCCESS: Valid audio stream acquired!`, "success");
+          log(`Track Label: ${audioTracks[0].label}`, "success");
+          log(`Track Status: ${audioTracks[0].readyState}`, "success");
+          
+          // Stop stream immediately to release the microphone
+          stream.getTracks().forEach(track => track.stop());
+          log("Stream successfully closed after verification.");
+        } else {
+          log("FAIL: Stream was returned but contained no audio tracks.", "error");
+        }
+      } catch (err) {
+        log(`FAIL: Microphone access denied or failed.`, "error");
+        log(`Error Name: ${err.name}`, "error");
+        log(`Error Message: ${err.message}`, "error");
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -147,7 +147,7 @@ function Step1SetUp({ onStart }) {
                         <div className='relative'>
                             <FaUserTie className='absolute top-4 left-4 text-gray-400' />
 
-                            <input type='text' placeholder='Enter role'
+                            <input type='text' id='role' name='role' placeholder='Enter role'
                                 className='w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition'
                                 onChange={(e) => setRole(e.target.value)} value={role} />
                         </div>
@@ -156,7 +156,7 @@ function Step1SetUp({ onStart }) {
                         <div className='relative'>
                             <FaBriefcase className='absolute top-4 left-4 text-gray-400' />
 
-                            <input type='text' placeholder='Experience (e.g. 2 years)'
+                            <input type='text' id='experience' name='experience' placeholder='Experience (e.g. 2 years)'
                                 className='w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition'
                                 onChange={(e) => setExperience(e.target.value)} value={experience} />
 
@@ -164,7 +164,7 @@ function Step1SetUp({ onStart }) {
 
                         </div>
 
-                        <select value={mode}
+                        <select id='mode' name='mode' value={mode}
                             onChange={(e) => setMode(e.target.value)}
                             className='w-full py-3 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition'>
 

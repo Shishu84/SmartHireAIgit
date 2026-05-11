@@ -1,5 +1,10 @@
 import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { askAi } from "../services/openRouter.service.js";
 import User from "../models/user.model.js";
 import Interview from "../models/interview.model.js";
@@ -36,28 +41,43 @@ export const analyzeResume = async (req, res) => {
       {
         role: "system",
         content: `
-Extract structured data from resume.
+You are an expert ATS (Applicant Tracking System).
+Your task is to extract structured data ONLY from the provided resume text.
+Do NOT hallucinate or make up any information. If a field is not present in the resume or if the resume text is empty, leave it as an empty string or empty array.
 
-Return strictly JSON:
-
+Return strictly valid JSON without any markdown formatting or backticks.
+The JSON must have this exact structure:
 {
-  "role": "string",
-  "experience": "string",
-  "projects": ["project1", "project2"],
-  "skills": ["skill1", "skill2"]
+  "role": "string (the candidate's primary job title or role)",
+  "experience": "string (total years of experience, e.g., '3 years' or 'Fresher')",
+  "projects": ["array of strings (names or short descriptions of projects worked on)"],
+  "skills": ["array of strings (technical and soft skills)"]
 }
 `
       },
       {
         role: "user",
-        content: resumeText
+        content: resumeText || "No text could be extracted from the resume."
       }
     ];
 
 
     const aiResponse = await askAi(messages)
 
-    const parsed = JSON.parse(aiResponse);
+    let cleanedResponse = aiResponse;
+    const jsonMatch = cleanedResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+        cleanedResponse = jsonMatch[1];
+    } else {
+        const fallbackMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        if (fallbackMatch) {
+            cleanedResponse = fallbackMatch[0];
+        } else {
+            cleanedResponse = cleanedResponse.trim();
+        }
+    }
+
+    const parsed = JSON.parse(cleanedResponse);
 
     fs.unlinkSync(filepath)
 

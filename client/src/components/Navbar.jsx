@@ -58,7 +58,7 @@ function Navbar() {
                             className='hidden md:flex items-center gap-2 text-gray-600 hover:text-black font-medium transition'
                         >
                             <BsRobot size={20} />
-                            Career Mentor
+                            Career Mentor Bot
                         </button>
                     )}
 

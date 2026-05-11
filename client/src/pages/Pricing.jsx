@@ -17,7 +17,7 @@ function Pricing() {
       id: "free",
       name: "Free",
       price: "₹0",
-      credits: 100,
+      credits: 5000,
       description: "Perfect for beginners starting interview preparation.",
       features: [
         "100 AI Interview Credits",
@@ -31,7 +31,7 @@ function Pricing() {
       id: "basic",
       name: "Starter Pack",
       price: "₹100",
-      credits: 150,
+      credits: 15000,
       description: "Great for focused practice and skill improvement.",
       features: [
         "150 AI Interview Credits",
@@ -44,7 +44,7 @@ function Pricing() {
       id: "pro",
       name: "Pro Pack",
       price: "₹500",
-      credits: 650,
+      credits: "Unlimited",
       description: "Best value for serious job preparation.",
       features: [
         "650 AI Interview Credits",

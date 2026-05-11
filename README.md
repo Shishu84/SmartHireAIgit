@@ -137,10 +137,10 @@ Distributed under the ISC License. See `LICENSE` for more information (if applic
 ---
 +## 👥 Team Members
 +
-+*   **Shishu Kumar** ([@Shishu84](https://github.com/Shishu84)) - Lead Developer
-+*   **[Anish Anand]** ([@username](https://github.com/username)) - [Role/Contribution]
-+*   **[Mayank]** ([@mayank4020](https://github.com/mayank4020)) - [Role/Contribution]
-+*   **[Tinku kumar]** ([@](https://github.com/username)) - [Role/Contribution]
++*   **Shishu Kumar** ([@Shishu84](https://github.com/Shishu84)) - [Backend Development] Lead Developer
++*   **[Anish Anand]** ([@AnishAnand05](https://github.com/AnishAnand05)) - [Ai Model Integration]
++*   **[Mayank]** ([@mayank4020](https://github.com/mayank4020)) - [UI/UX Design & Frontend Development]
++*   **[Tinku kumar]** ([@tinku-05](https://github.com/@tinku-05)) - [Database Management]
 
 +---
 +Developed with ❤️ by the SmartHire AI Team

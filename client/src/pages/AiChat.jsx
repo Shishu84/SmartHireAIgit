@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Navbar from '../components/Navbar';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsSend, BsRobot, BsPerson, BsTrash, BsLightbulb } from 'react-icons/bs';
 import axios from 'axios';
 import { ServerUrl } from '../App';
-import Footer from '../components/Footer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -143,7 +141,6 @@ const AiChat = () => {
 
     return (
         <div className="min-h-screen bg-[#f3f3f3] flex flex-col">
-            <Navbar />
             
             <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-4 md:p-6 overflow-hidden">
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-200 flex flex-col h-[75vh] md:h-[80vh] overflow-hidden">
@@ -293,7 +290,6 @@ const AiChat = () => {
                     </div>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 };

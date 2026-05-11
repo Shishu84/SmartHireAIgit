@@ -1,8 +1,7 @@
-import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Auth from './pages/Auth'
-import { useEffect } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
 import { setUserData } from './redux/userSlice'
@@ -11,12 +10,17 @@ import InterviewHistory from './pages/InterviewHistory'
 import Pricing from './pages/Pricing'
 import InterviewReport from './pages/InterviewReport'
 import AiChat from './pages/AiChat'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 export const ServerUrl = "http://localhost:8000"
 
 function App() {
-
   const dispatch = useDispatch()
+  const location = useLocation()
+  
+  const isInterviewRoom = location.pathname === '/interview'
+
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -28,19 +32,26 @@ function App() {
       }
     }
     getUser()
-
   }, [dispatch])
-  return (
-    <Routes>
-      <Route path='/' element={<Home />} />
-      <Route path='/auth' element={<Auth />} />
-      <Route path='/interview' element={<InterviewPage />} />
-      <Route path='/history' element={<InterviewHistory />} />
-      <Route path='/pricing' element={<Pricing />} />
-      <Route path='/report/:id' element={<InterviewReport />} />
-      <Route path='/mentor' element={<AiChat />} />
 
-    </Routes>
+  return (
+    <div className="flex flex-col min-h-screen">
+      {!isInterviewRoom && <Navbar />}
+      
+      <main className="flex-1">
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/auth' element={<Auth />} />
+          <Route path='/interview' element={<InterviewPage />} />
+          <Route path='/history' element={<InterviewHistory />} />
+          <Route path='/pricing' element={<Pricing />} />
+          <Route path='/report/:id' element={<InterviewReport />} />
+          <Route path='/mentor' element={<AiChat />} />
+        </Routes>
+      </main>
+
+      {!isInterviewRoom && <Footer />}
+    </div>
   )
 }
 

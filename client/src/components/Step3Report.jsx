@@ -25,9 +25,9 @@ function Step3Report({ report }) {
     questionWiseScore = [],
   } = report;
 
-  const questionScoreData = questionWiseScore.map((score, index) => ({
+  const questionScoreData = (questionWiseScore || []).map((scoreObj, index) => ({
     name: `Q${index + 1}`,
-    score: score.score || 0
+    score: scoreObj?.score || 0
   }))
 
   const skills = [
@@ -172,40 +172,46 @@ function Step3Report({ report }) {
   };
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-gray-50 to-green-50 px-4 sm:px-6 lg:px-10 py-8'>
-      <div className='mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-        <div className='md:mb-10 w-full flex items-start gap-4 flex-wrap'>
+    <div className='min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-green-50/50 px-4 sm:px-6 lg:px-10 py-10 font-sans'>
+      <div className='mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6'>
+        <div className='w-full flex items-center gap-4 flex-wrap'>
           <button
             onClick={() => navigate("/history")}
-            className='mt-1 p-3 rounded-full bg-white shadow hover:shadow-md transition'><FaArrowLeft className='text-gray-600' /></button>
+            className='p-3 rounded-2xl bg-white shadow-sm border border-gray-100 hover:shadow-md hover:bg-gray-50 transition-all duration-300'>
+            <FaArrowLeft className='text-gray-600' />
+          </button>
 
           <div>
-            <h1 className='text-3xl font-bold flex-nowrap text-gray-800'>
-              Interview Analytics Dashboard
+            <h1 className='text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight'>
+              Analytics Dashboard
             </h1>
-            <p className='text-gray-500 mt-2'>
-              AI-powered performance insights
+            <p className='text-gray-500 mt-1 font-medium'>
+              AI-powered performance insights & feedback
             </p>
-
           </div>
         </div>
 
-        <button onClick={downloadPDF} className='bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl shadow-md transition-all duration-300 font-semibold text-sm sm:text-base text-nowrap'>Download PDF</button>
+        <button onClick={downloadPDF} className='bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 font-semibold text-sm sm:text-base text-nowrap ring-1 ring-gray-900/10'>
+          Download PDF Report
+        </button>
       </div>
 
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
 
-        <div className='space-y-6'>
+        <div className='space-y-6 lg:space-y-8'>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 text-center">
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="backdrop-blur-xl bg-white/90 border border-white/60 rounded-3xl shadow-xl shadow-gray-200/50 p-6 sm:p-8 text-center relative overflow-hidden">
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 to-transparent pointer-events-none"></div>
 
-            <h3 className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base">
+            <h3 className="text-gray-500 font-medium mb-6 text-sm sm:text-base tracking-wide uppercase">
               Overall Performance
             </h3>
-            <div className='relative w-20 h-20 sm:w-25 sm:h-25 mx-auto'>
+            <div className='relative w-24 h-24 sm:w-28 sm:h-28 mx-auto drop-shadow-sm'>
               <CircularProgressbar
                 value={percentage}
                 text={`${score}/10`}
@@ -233,10 +239,11 @@ function Step3Report({ report }) {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className='bg-white rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8'>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-6">
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className='backdrop-blur-xl bg-white/90 border border-white/60 rounded-3xl shadow-xl shadow-gray-200/50 p-6 sm:p-8'>
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-6 tracking-tight">
               Skill Evaluation
             </h3>
 
@@ -305,30 +312,31 @@ function Step3Report({ report }) {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className='bg-white rounded-2xl sm:rounded-3xl shadow-lg p-5 sm:p-8'>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-6">
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className='backdrop-blur-xl bg-white/90 border border-white/60 rounded-3xl shadow-xl shadow-gray-200/50 p-6 sm:p-8'>
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-6 tracking-tight">
               Question Breakdown
             </h3>
             <div className='space-y-6'>
-              {questionWiseScore.map((q, i) => (
-                <div key={i} className='bg-gray-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200'>
+              {(questionWiseScore || []).map((q, i) => (
+                <div key={i} className='bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300'>
 
-                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4'>
-                    <div>
-                      <p className="text-xs text-gray-400">
+                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-5'>
+                    <div className='flex-1'>
+                      <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg mb-3">
                         Question {i + 1}
-                      </p>
+                      </span>
 
-                      <p className="font-semibold text-gray-800 text-sm sm:text-base leading-relaxed">
-                        {q.question || "Question not available"}
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base leading-relaxed">
+                        {q?.question || "Question not available"}
                       </p>
                     </div>
 
 
                     <div className='bg-green-100 text-green-600 px-3 py-1 rounded-full font-bold text-xs sm:text-sm w-fit'>
-                      {q.score ?? 0}/10
+                      {q?.score ?? 0}/10
                     </div>
                   </div>
 
@@ -338,7 +346,7 @@ function Step3Report({ report }) {
                     </p>
                     <p className='text-sm text-gray-700 leading-relaxed'>
 
-                      {q.feedback && q.feedback.trim() !== ""
+                      {q?.feedback && q.feedback.trim() !== ""
                         ? q.feedback
                         : "No feedback available for this question."}
                     </p>

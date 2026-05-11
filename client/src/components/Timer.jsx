@@ -1,8 +1,9 @@
 import React from 'react'
 import { buildStyles, CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-function Timer({ timeLeft, totalTime }) {
-    const percentage = (timeLeft/totalTime)*100
+function Timer({ timeLeft = 0, totalTime = 60 }) {
+    const validTotalTime = totalTime > 0 ? totalTime : 60;
+    const percentage = (timeLeft / validTotalTime) * 100 || 0;
   return (
     <div className='w-20 h-20'>
         <CircularProgressbar

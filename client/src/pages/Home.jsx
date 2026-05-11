@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbar from '../components/Navbar'
+
 import { useSelector } from 'react-redux'
 import { motion } from "motion/react";
 import {
@@ -21,7 +21,7 @@ import evalImg from "../assets/ai-ans.png";
 import resumeImg from "../assets/resume.png";
 import pdfImg from "../assets/pdf.png";
 import analyticsImg from "../assets/history.png";
-import Footer from '../components/Footer';
+
 
 
 function Home() {
@@ -30,7 +30,6 @@ function Home() {
   const navigate = useNavigate()
   return (
     <div className='min-h-screen bg-[#f3f3f3] flex flex-col'>
-      <Navbar />
 
       <div className='flex-1 px-6 py-20'>
         <div className='max-w-6xl mx-auto'>
@@ -305,8 +304,6 @@ function Home() {
       </div>
 
       {showAuth && <AuthModel onClose={() => setShowAuth(false)} />}
-
-        <Footer/>
 
     </div>
   )

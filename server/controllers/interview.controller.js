@@ -3,6 +3,16 @@ import path from "path"
 import { fileURLToPath } from "url"
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
+import mammoth from "mammoth";
+import WordExtractor from "word-extractor";
+import Tesseract from "tesseract.js";
+import { Jimp } from "jimp";
+
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { askAi } from "../services/openRouter.service.js";
@@ -15,27 +25,85 @@ export const analyzeResume = async (req, res) => {
       return res.status(400).json({ message: "Resume required" });
     }
     const filepath = req.file.path
-
-    const fileBuffer = await fs.promises.readFile(filepath)
-    const uint8Array = new Uint8Array(fileBuffer)
-
-    const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
 
     let resumeText = "";
 
-    // Extract text from all pages
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent();
+    try {
+        if (fileExt === '.pdf') {
+            const fileBuffer = await fs.promises.readFile(filepath);
+            try {
+                const parsedPdf = await pdfParse(fileBuffer);
+                resumeText = parsedPdf.text.replace(/\s+/g, " ").trim();
+            } catch (err) {
+                console.log("pdf-parse error, falling back to empty string for OCR...", err.message);
+            }
 
-      const pageText = content.items.map(item => item.str).join(" ");
-      resumeText += pageText + "\n";
+            // 3. If extracted text is very low: Convert PDF pages to images -> Run OCR
+            if (!resumeText || resumeText.length < 50) {
+                console.log("PDF text low. Running OCR...");
+                const uint8Array = new Uint8Array(fileBuffer);
+                const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+                let ocrText = "";
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const operatorList = await page.getOperatorList();
+                    
+                    for (let i = 0; i < operatorList.fnArray.length; i++) {
+                        if (operatorList.fnArray[i] === pdfjsLib.OPS.paintImageXObject) {
+                            const imgName = operatorList.argsArray[i][0];
+                            try {
+                                const img = await page.objs.get(imgName);
+                                if (img && img.data && img.width && img.height) {
+                                    let jimpData;
+                                    if (img.data.length === img.width * img.height * 3) {
+                                        jimpData = Buffer.alloc(img.width * img.height * 4);
+                                        for (let j = 0; j < img.width * img.height; j++) {
+                                            jimpData[j * 4] = img.data[j * 3];
+                                            jimpData[j * 4 + 1] = img.data[j * 3 + 1];
+                                            jimpData[j * 4 + 2] = img.data[j * 3 + 2];
+                                            jimpData[j * 4 + 3] = 255;
+                                        }
+                                    } else {
+                                        jimpData = Buffer.from(img.data);
+                                    }
+                                    const jimpImage = await new Promise((resolve, reject) => {
+                                        new Jimp({ data: jimpData, width: img.width, height: img.height }, (err, image) => {
+                                            if (err) reject(err); else resolve(image);
+                                        });
+                                    });
+                                    const pngBuffer = await jimpImage.getBufferAsync("image/png");
+                                    const { data: { text } } = await Tesseract.recognize(pngBuffer, 'eng');
+                                    ocrText += text + "\n";
+                                }
+                            } catch (e) { console.error("OCR parsing error:", e.message); }
+                        }
+                    }
+                }
+                resumeText = ocrText.replace(/\s+/g, " ").trim();
+            }
+        } else if (fileExt === '.docx') {
+            const result = await mammoth.extractRawText({ path: filepath });
+            resumeText = result.value.replace(/\s+/g, " ").trim();
+        } else if (fileExt === '.doc') {
+            const extractor = new WordExtractor();
+            const extracted = await extractor.extract(filepath);
+            resumeText = extracted.getBody().replace(/\s+/g, " ").trim();
+        } else if (['.png', '.jpg', '.jpeg'].includes(fileExt)) {
+            console.log("Running direct image OCR...");
+            const { data: { text } } = await Tesseract.recognize(filepath, 'eng');
+            resumeText = text.replace(/\s+/g, " ").trim();
+        } else if (fileExt === '.txt') {
+            const txtBuffer = await fs.promises.readFile(filepath);
+            resumeText = txtBuffer.toString().replace(/\s+/g, " ").trim();
+        } else {
+            throw new Error("Unsupported file format. Please upload a PDF, DOC, DOCX, JPG, PNG or TXT file.");
+        }
+
+    } catch (parseError) {
+        if (req.file && fs.existsSync(filepath)) { fs.unlinkSync(filepath); }
+        return res.status(400).json({ message: parseError.message || "Failed to parse document." });
     }
-
-
-    resumeText = resumeText
-      .replace(/\s+/g, " ")
-      .trim();
 
     const messages = [
       {
@@ -43,7 +111,9 @@ export const analyzeResume = async (req, res) => {
         content: `
 You are an expert ATS (Applicant Tracking System).
 Your task is to extract structured data ONLY from the provided resume text.
-Do NOT hallucinate or make up any information. If a field is not present in the resume or if the resume text is empty, leave it as an empty string or empty array.
+Even if the text is messy, out of order, or missing sections due to parsing complex layouts (like graphics, tables, or scans), DO YOUR BEST to piece together the candidate's profile.
+If it is clearly a resume, NEVER return an empty object or a 0 score. ALWAYS attempt to score and extract partial information.
+Do NOT hallucinate or make up any information. If a field is truly missing, leave it as an empty string or empty array.
 
 Return strictly valid JSON without any markdown formatting or backticks.
 The JSON must have this exact structure:
@@ -51,7 +121,14 @@ The JSON must have this exact structure:
   "role": "string (the candidate's primary job title or role)",
   "experience": "string (total years of experience, e.g., '3 years' or 'Fresher')",
   "projects": ["array of strings (names or short descriptions of projects worked on)"],
-  "skills": ["array of strings (technical and soft skills)"]
+  "skills": ["array of strings (technical and soft skills)"],
+  "atsScore": "number (0 to 100 representing ATS match/quality)",
+  "summary": "string (brief 2-3 sentence professional summary of the candidate)",
+  "strengths": ["array of strings (top 2-3 strengths of the candidate)"],
+  "weakness": ["array of strings (identify 2-3 missing skills or areas of improvement based on typical industry standards for their role)"],
+  "experienceAnalysis": "string (1-2 sentence analysis of their work history and impact)",
+  "bestRole": "string (the single best-suited job title for this candidate based on their resume)",
+  "suggestions": ["array of strings (2-3 actionable tips to improve the resume impact)"]
 }
 `
       },
@@ -87,6 +164,13 @@ The JSON must have this exact structure:
       experience: parsed.experience,
       projects: parsed.projects,
       skills: parsed.skills,
+      atsScore: parsed.atsScore,
+      summary: parsed.summary,
+      strengths: parsed.strengths,
+      weakness: parsed.weakness,
+      experienceAnalysis: parsed.experienceAnalysis,
+      bestRole: parsed.bestRole,
+      suggestions: parsed.suggestions,
       resumeText
     });
 

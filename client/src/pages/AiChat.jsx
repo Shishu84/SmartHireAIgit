@@ -86,16 +86,20 @@ const AiChat = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
             
             let accumulatedContent = "";
+            let buffer = "";
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split("\n");
+                buffer += decoder.decode(value, { stream: true });
+                
+                let newlineIndex;
+                while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, newlineIndex).trim();
+                    buffer = buffer.slice(newlineIndex + 1);
 
-                for (const line of lines) {
                     if (line.startsWith("data: ")) {
-                        const dataStr = line.slice(6).trim();
+                        const dataStr = line.slice(6);
                         if (dataStr === "[DONE]") continue;
 
                         try {

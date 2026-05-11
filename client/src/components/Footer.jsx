@@ -9,7 +9,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          
+
           {/* Column 1: Brand/About */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
@@ -19,7 +19,7 @@ function Footer() {
               <h2 className="text-xl font-bold text-gray-900 tracking-tight">SmartHire.AI</h2>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Elevate your career with our AI-powered interview platform. 
+              Elevate your  with our AI-powered interview platform.
               Practice real scenarios, improve your communication, and build professional confidence.
             </p>
             <div className="flex items-center gap-4 pt-2">
@@ -83,20 +83,20 @@ function Footer() {
               e.preventDefault();
               window.location.href = "mailto:Smarthireaigaya@gmail.com";
             }}>
-              <input 
-                type="email" 
-                placeholder="Your email address" 
+              <input
+                type="email"
+                placeholder="Your email address"
                 className="px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow text-sm w-full shadow-sm"
                 required
               />
-              <textarea 
-                placeholder="How can we help?" 
+              <textarea
+                placeholder="How can we help?"
                 rows="2"
                 className="px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow text-sm w-full shadow-sm resize-none"
                 required
               ></textarea>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="w-full bg-black text-white font-medium py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm text-sm"
               >
                 Send Message

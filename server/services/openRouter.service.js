@@ -54,17 +54,21 @@ export const askAiStream = async (messages, onChunk) => {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullText = "";
+        let buffer = "";
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
+            buffer += decoder.decode(value, { stream: true });
+            
+            let newlineIndex;
+            while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+                const line = buffer.slice(0, newlineIndex).trim();
+                buffer = buffer.slice(newlineIndex + 1);
 
-            for (const line of lines) {
-                if (line.trim().startsWith("data: ")) {
-                    const dataStr = line.trim().slice(6);
+                if (line.startsWith("data: ")) {
+                    const dataStr = line.slice(6);
                     if (dataStr === "[DONE]") continue;
 
                     try {
@@ -75,7 +79,7 @@ export const askAiStream = async (messages, onChunk) => {
                             onChunk(content);
                         }
                     } catch (e) {
-                        // Incomplete JSON line
+                        // ignore malformed JSON that slipped through
                     }
                 }
             }

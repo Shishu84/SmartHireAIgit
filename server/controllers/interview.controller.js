@@ -7,16 +7,13 @@ import mammoth from "mammoth";
 import WordExtractor from "word-extractor";
 import Tesseract from "tesseract.js";
 
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import { askAi } from "../services/openRouter.service.js";
 import User from "../models/user.model.js";
 import Interview from "../models/interview.model.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 export const analyzeResume = async (req, res) => {
   const filepath = req.file?.path;
@@ -32,51 +29,22 @@ export const analyzeResume = async (req, res) => {
     // ── LAYER 1: Text extraction based on file type ──────────────────────────
     try {
       if (fileExt === '.pdf') {
-        // Attempt 1: pdf-parse (best for text-based PDFs)
+        // Use pdfjs text extraction
         try {
           const fileBuffer = await fs.promises.readFile(filepath);
-          const parsedPdf = await pdfParse(fileBuffer);
-          resumeText = (parsedPdf.text || "").replace(/\s+/g, " ").trim();
-          console.log(`pdf-parse extracted ${resumeText.length} chars`);
+          const uint8Array = new Uint8Array(fileBuffer);
+          const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise;
+          let pdfText = "";
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const content = await page.getTextContent();
+            pdfText += content.items.map(item => item.str).join(" ") + "\n";
+          }
+          await pdf.destroy(); // Fix file system lock
+          resumeText = pdfText.replace(/\s+/g, " ").trim();
+          console.log(`pdfjs extracted ${resumeText.length} chars`);
         } catch (e) {
-          console.log("pdf-parse failed:", e.message);
-        }
-
-        // Attempt 2: pdfjs text extraction (handles more PDF variants)
-        if (!resumeText || resumeText.length < 50) {
-          try {
-            const fileBuffer = await fs.promises.readFile(filepath);
-            const uint8Array = new Uint8Array(fileBuffer);
-            const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise;
-            let pdfText = "";
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-              const page = await pdf.getPage(pageNum);
-              const content = await page.getTextContent();
-              pdfText += content.items.map(item => item.str).join(" ") + "\n";
-            }
-            pdfText = pdfText.replace(/\s+/g, " ").trim();
-            if (pdfText.length > resumeText.length) {
-              resumeText = pdfText;
-              console.log(`pdfjs extracted ${resumeText.length} chars`);
-            }
-          } catch (e) {
-            console.log("pdfjs text extraction failed:", e.message);
-          }
-        }
-
-        // Attempt 3: Tesseract OCR directly on the PDF (for fully scanned/image PDFs)
-        if (!resumeText || resumeText.length < 50) {
-          console.log("Text very low, attempting Tesseract OCR on PDF...");
-          try {
-            const { data: { text } } = await Tesseract.recognize(filepath, 'eng', { logger: () => {} });
-            const ocrText = (text || "").replace(/\s+/g, " ").trim();
-            if (ocrText.length > 30) {
-              resumeText = ocrText;
-              console.log(`Tesseract OCR extracted ${resumeText.length} chars from PDF`);
-            }
-          } catch (e) {
-            console.log("Tesseract PDF OCR failed:", e.message);
-          }
+          console.log("pdfjs text extraction failed:", e.message);
         }
 
       } else if (fileExt === '.docx') {
@@ -193,11 +161,26 @@ Return ONLY a raw JSON object (no markdown, no backticks, no explanation):
     const safeArr = (v, fallback = []) => (Array.isArray(v) ? v : fallback);
     const safeNum = (v, fallback = 50) => (typeof v === "number" ? v : Number(v) || fallback);
 
-    // Cleanup temp file safely
-    try {
-      if (filepath && fs.existsSync(filepath)) fs.unlinkSync(filepath);
-    } catch (fsErr) {
-      console.error("Could not delete uploaded file:", fsErr.message);
+    // Robust file cleanup to handle file system locks
+    const deleteFileWithRetry = async (filePath, retries = 5, delayMs = 1000) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          if (fs.existsSync(filePath)) {
+            await fs.promises.unlink(filePath);
+          }
+          break; // Success
+        } catch (fsErr) {
+          if (i === retries - 1) {
+            console.error("Could not delete uploaded file after retries:", fsErr.message);
+          } else {
+            await new Promise(res => setTimeout(res, delayMs)); // Wait and retry
+          }
+        }
+      }
+    };
+
+    if (filepath) {
+      await deleteFileWithRetry(filepath);
     }
 
     return res.json({
@@ -217,9 +200,11 @@ Return ONLY a raw JSON object (no markdown, no backticks, no explanation):
 
   } catch (error) {
     console.error("Resume analysis top-level error:", error.message);
-    try {
-      if (filepath && fs.existsSync(filepath)) fs.unlinkSync(filepath);
-    } catch (_) {}
+    if (filepath) {
+      try {
+        if (fs.existsSync(filepath)) await fs.promises.unlink(filepath);
+      } catch (_) {}
+    }
     return res.status(500).json({ message: "Failed to analyze resume. Please try again." });
   }
 };
@@ -327,7 +312,7 @@ Make questions based on the candidate’s role, experience,interviewMode, projec
 
     const questionsArray = aiResponse
       .split("\n")
-      .map(q => q.trim())
+      .map(q => q.replace(/^(?:\d+[\.\)]\s*|Question\s*\d+:\s*|Q\d+:\s*|-\s*)/i, "").trim())
       .filter(q => q.length > 0)
       .slice(0, 5);
 
@@ -458,7 +443,28 @@ Answer: ${answer}
     const aiResponse = await askAi(messages)
 
 
-    const parsed = JSON.parse(aiResponse);
+    let parsed;
+    try {
+      let cleanedResponse = (aiResponse || "").trim();
+      const blockMatch = cleanedResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (blockMatch) {
+        cleanedResponse = blockMatch[1];
+      } else {
+        const objMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        if (objMatch) cleanedResponse = objMatch[0];
+      }
+      cleanedResponse = cleanedResponse.replace(/,\s*([\}\]])/g, '$1');
+      parsed = JSON.parse(cleanedResponse);
+    } catch (parseError) {
+      console.error("AI answer evaluation parse error:", parseError.message);
+      parsed = {
+        confidence: 50,
+        communication: 50,
+        correctness: 50,
+        finalScore: 50,
+        feedback: "We could not fully process this answer due to an AI format issue, but your response has been recorded."
+      };
+    }
 
     question.answer = answer;
     question.confidence = parsed.confidence;

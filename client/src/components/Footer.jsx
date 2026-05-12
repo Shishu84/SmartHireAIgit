@@ -46,7 +46,7 @@ function Footer() {
                 <Link to="/" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Home</Link>
               </li>
               <li>
-                <Link to="/analyze" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
+                <Link to="/interview" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
               </li>
               <li>
                 <Link to="/interview" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors text-sm font-bold">

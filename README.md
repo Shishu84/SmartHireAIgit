@@ -16,6 +16,8 @@ In today's competitive job market, preparation is key. **SmartHire AI** bridges 
 
 - **📄 AI Resume Analysis**: Intelligently parses PDF, Word, and Image-based resumes to extract skills, experience, and projects using OCR (Tesseract.js) and specialized extractors.
 - **🤖 Dynamic AI Interviews**: Experience high-fidelity, role-specific interview sessions with questions tailored to your experience level and domain.
+- **🧑‍💻 Real-Time Avatar Interviews** *(Roadmap)*: Animated, lip-synced AI avatar powered by Three.js/Ready Player Me with real-time speech and gestures.
+- **🌐 Multilingual Support (Hindi ↔ English)** *(Roadmap)*: Seamless bilingual interviewing using Whisper STT, Google Translate, and Azure TTS.
 - **📊 Professional Feedback Reports**: Receive a detailed breakdown of your performance, focusing on key metrics like **Confidence**, **Communication**, and **Correctness**.
 - **📈 Progress Tracking**: Monitor your growth over time with a centralized dashboard showcasing historical scores and interview trends.
 - **💳 Integrated Credit System**: Manage interview attempts through a secure credit system, powered by **Razorpay** for seamless transactions.
@@ -43,6 +45,128 @@ SmartHire AI is built using a modern MERN-like stack, optimized for performance 
 - **AI Integration**: [OpenRouter](https://openrouter.ai/) (GPT-4o-mini) for intelligent question generation and evaluation.
 - **Parsing Engines**: [Tesseract.js](https://tesseract.projectnaptha.com/) (OCR), [Mammoth](https://github.com/mwilliamson/mammoth.js) (Docx), [pdf-parse](https://www.npmjs.com/package/pdf-parse).
 - **Security**: [JSON Web Tokens (JWT)](https://jwt.io/) & [Cookie-parser](https://github.com/expressjs/cookie-parser).
+
+---
+
+## 🧠 Extended Architecture: Real-Time Avatar Interviews *(Roadmap)*
+
+This section documents the planned extension to transform SmartHire AI into a fully immersive, real-time, multilingual avatar interview platform.
+
+### 1. 🖥️ Frontend (React + Vite) Enhancements
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| Live Video/Audio | **WebRTC** | Peer-to-peer candidate ↔ avatar streaming |
+| Avatar Rendering | **Three.js** / **Ready Player Me** / **DeepBrain AI** | 3D avatar display with real-time animation |
+| Language Toggle | **react-i18next** | Seamless Hindi ↔ English UI switching |
+| Real-Time Events | **Socket.IO Client** | Speech recognition, translation, and avatar sync |
+| Gestures & Transitions | **Framer Motion** | Smooth avatar gesture animations |
+
+### 2. ⚙️ Backend (Node.js + Express) New API Routes
+
+```
+POST /api/speech-to-text   → Hindi/English transcription (Whisper API / Google STT)
+POST /api/translate         → Hindi ↔ English translation (Google Translate API)
+POST /api/text-to-speech    → Natural voice generation (Azure TTS / Amazon Polly)
+POST /api/avatar-sync       → Map audio to visemes for real-time lip sync
+WS   /socket.io             → Low-latency bidirectional communication
+```
+
+> [!NOTE]
+> All streaming sessions are protected by the existing JWT authentication system, extended to cover WebRTC session handshakes.
+
+### 3. 🤖 AI Service Layer
+
+```
+Candidate Speech (Hindi/English)
+        │
+        ▼
+┌───────────────────┐
+│  Speech-to-Text   │  (Whisper API / Google STT)
+│  (STT Engine)     │
+└───────┬───────────┘
+        │  Text Transcript
+        ▼
+┌───────────────────┐
+│  Translation      │  (Google Translate API)
+│  Engine           │
+└───────┬───────────┘
+        │  Translated Text
+        ▼
+┌───────────────────┐
+│  Text-to-Speech   │  (Azure TTS / Amazon Polly)
+│  (TTS Engine)     │
+└───────┬───────────┘
+        │  Audio Stream + Viseme Data
+        ▼
+┌───────────────────┐
+│  Avatar Engine    │  (Three.js / Ready Player Me SDK)
+│  (Lip Sync)       │
+└───────────────────┘
+        │  Animated Avatar
+        ▼
+   React Frontend
+```
+
+### 4. 🗄️ Database Schema Extensions (MongoDB)
+
+The existing Mongoose schemas will be extended with the following fields:
+
+```javascript
+// InterviewSession Schema — new fields
+{
+  transcript: [
+    {
+      speaker:  { type: String, enum: ['candidate', 'ai'] },
+      original: { type: String },   // Original spoken language
+      translated: { type: String }, // Translated text
+      language: { type: String },   // 'hi' | 'en'
+      timestamp: { type: Date }
+    }
+  ],
+  languagePreference: { type: String, default: 'en' }, // 'hi' | 'en'
+  avatarConfig: {
+    avatarId:   { type: String },
+    voiceStyle: { type: String },
+    theme:      { type: String }
+  }
+}
+```
+
+### 5. 📡 Streaming Infrastructure
+
+- **WebRTC (P2P)**: Direct candidate ↔ interviewer avatar video streams.
+- **Media Server** *(Optional)*: [Janus](https://janus.conf.meetecho.com/) or [Kurento](https://www.kurento.org/) for multi-party sessions or session recording.
+- **CDN/Edge Delivery**: Global low-latency streaming for scalability.
+
+### 🔄 End-to-End Workflow
+
+```
+1.  Candidate speaks in Hindi
+         │
+2.  STT → text (Hindi)
+         │
+3.  Translate → English text sent to AI evaluator
+         │
+4.  AI generates English response
+         │
+5.  Translate → Hindi text
+         │
+6.  TTS → Hindi audio + lip-sync viseme data
+         │
+7.  Avatar Engine → animated, lip-synced avatar speaks in Hindi
+         │
+8.  React frontend renders avatar with synced audio/video
+```
+
+### 🧩 Integration Map with Existing SmartHireAI Features
+
+| Existing Feature | Enhancement |
+| :--- | :--- |
+| Dynamic AI Interviews | Add real-time avatar + full multilingual pipeline |
+| Professional Feedback Reports | Include session transcript + translation accuracy metrics |
+| Progress Tracking | Track language usage patterns and avatar engagement scores |
+| Secure Authentication (JWT + Firebase) | Extended to authenticate live WebRTC video sessions |
 
 ---
 

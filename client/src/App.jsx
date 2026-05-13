@@ -10,6 +10,7 @@ import InterviewHistory from './pages/InterviewHistory'
 import Pricing from './pages/Pricing'
 import InterviewReport from './pages/InterviewReport'
 import AiChat from './pages/AiChat'
+import AvatarInterview from './pages/AvatarInterview'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 
@@ -19,7 +20,7 @@ function App() {
   const dispatch = useDispatch()
   const location = useLocation()
   
-  const isInterviewRoom = location.pathname === '/interview'
+  const isInterviewRoom = location.pathname === '/interview' || location.pathname === '/avatar-interview'
 
   useEffect(() => {
     const getUser = async () => {
@@ -47,6 +48,7 @@ function App() {
           <Route path='/pricing' element={<Pricing />} />
           <Route path='/report/:id' element={<InterviewReport />} />
           <Route path='/mentor' element={<AiChat />} />
+          <Route path='/avatar-interview' element={<AvatarInterview />} />
         </Routes>
       </main>
 

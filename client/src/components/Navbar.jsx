@@ -36,6 +36,7 @@ function Navbar() {
         { label: "Home", action: () => { navigate("/"); setMobileMenuOpen(false); } },
         ...(userData ? [
             { label: "Career Mentor Bot", action: () => { navigate("/mentor"); setMobileMenuOpen(false); } },
+            { label: "Avatar Interview", action: () => { navigate("/avatar-interview"); setMobileMenuOpen(false); } },
             { label: "Interview History", action: () => { navigate("/history"); setMobileMenuOpen(false); } },
         ] : []),
         { label: "Pricing", action: () => { navigate("/pricing"); setMobileMenuOpen(false); } },
@@ -61,9 +62,14 @@ function Navbar() {
                 <div className='hidden md:flex items-center gap-6 relative'>
                     <button onClick={() => navigate("/")} className='text-gray-600 hover:text-black font-medium transition'>Home</button>
                     {userData && (
+                        <>
                         <button onClick={() => navigate("/mentor")} className='flex items-center gap-2 text-gray-600 hover:text-black font-medium transition'>
                             <BsRobot size={18} /> Career Mentor
                         </button>
+                        <button onClick={() => navigate("/avatar-interview")} className='flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium transition'>
+                            🌐 Avatar Interview
+                        </button>
+                        </>
                     )}
                     <button onClick={() => navigate("/pricing")} className='text-gray-600 hover:text-black font-medium transition'>Pricing</button>
 

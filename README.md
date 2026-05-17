@@ -48,6 +48,43 @@ SmartHire AI is built using a modern MERN-like stack, optimized for performance 
 
 ---
 
+## 🏗️ Resume Analysis Architecture & Flow
+
+The Resume Analysis feature is designed as a **multi-stage pipeline** that transitions from raw file processing to structured AI intelligence.
+
+### 1. 🏗️ Architectural Layers
+- **Transport Layer (Express/Multer)**: Handles file reception and temporary storage.
+- **Extraction Layer (Parsers)**: A multi-format engine that converts binary files (PDF, DOCX, Images) into searchable text.
+- **Intelligence Layer (OpenRouter/LLM)**: A semantic analysis engine that interprets the text and maps it to a predefined schema.
+- **Resilience Layer (Fallbacks/Cleanup)**: Ensures the system remains stable even if extraction or AI fails.
+
+### 2. ⚙️ Working Flow (Step-by-Step)
+
+#### Step 1: File Ingestion
+- **Endpoint**: `POST /api/interview/resume`
+- **Mechanism**: Uses `multer` to store the file temporarily.
+- **Access**: Unauthenticated, allowing guest users to get an initial analysis.
+
+#### Step 2: Multi-Format Text Extraction
+The system detects the file extension and triggers the specific extraction logic:
+- **PDFs**: Uses `pdfjs-dist` to iterate through pages.
+- **DOCX/DOC**: Uses `mammoth` and `word-extractor`.
+- **Images (JPG/PNG)**: Uses **OCR (Tesseract.js)** to "read" scanned resumes.
+- **TXT**: Read directly as a string.
+
+#### Step 3: AI Semantic Analysis
+The extracted text is sent to **OpenRouter** with a specialized **System Prompt**:
+- **Persona**: Acts as an "Expert ATS (Applicant Tracking System)".
+- **Task**: Map raw text to a structured JSON object including `atsScore`, `skills`, `projects`, and `suggestions`.
+- **Inference**: AI makes educated inferences based on context if specific data points are missing.
+
+#### Step 4: Data Normalization & Resilience
+- **JSON Sanitization**: Strips markdown artifacts and fixes common AI formatting errors.
+- **Guaranteed Fallback**: If the AI service is down, a pre-defined "Safe Object" is returned to prevent UI crashes.
+- **File Cleanup**: A robust `deleteFileWithRetry` function ensures the uploaded file is deleted, avoiding file system locks.
+
+---
+
 ## 🧠 Extended Architecture: Real-Time Avatar Interviews *(Roadmap)*
 
 This section documents the planned extension to transform SmartHire AI into a fully immersive, real-time, multilingual avatar interview platform.

@@ -10,6 +10,7 @@ import Tesseract from "tesseract.js";
 import { askAi } from "../services/openRouter.service.js";
 import User from "../models/user.model.js";
 import Interview from "../models/interview.model.js";
+import ResumeAnalysis from "../models/resumeAnalysis.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,7 +184,31 @@ Return ONLY a raw JSON object (no markdown, no backticks, no explanation):
       await deleteFileWithRetry(filepath);
     }
 
+    let savedId = null;
+    if (req.userId) {
+      try {
+        const saved = await ResumeAnalysis.create({
+          userId: req.userId,
+          role: safeStr(parsed.role, "Professional"),
+          experience: safeStr(parsed.experience, "Not Specified"),
+          atsScore: safeNum(parsed.atsScore, 50),
+          summary: safeStr(parsed.summary),
+          bestRole: safeStr(parsed.bestRole, "Professional"),
+          skills: safeArr(parsed.skills),
+          strengths: safeArr(parsed.strengths),
+          weakness: safeArr(parsed.weakness),
+          suggestions: safeArr(parsed.suggestions),
+          experienceAnalysis: safeStr(parsed.experienceAnalysis),
+          fileName: req.file ? req.file.originalname : "resume.pdf"
+        });
+        savedId = saved._id;
+      } catch (dbErr) {
+        console.error("Failed to save resume analysis to db:", dbErr.message);
+      }
+    }
+
     return res.json({
+      _id: savedId,
       role: safeStr(parsed.role, "Professional"),
       experience: safeStr(parsed.experience, "Not Specified"),
       projects: safeArr(parsed.projects),
@@ -524,6 +549,49 @@ export const finishInterview = async (req,res) => {
     interview.finalScore = finalScore;
     interview.status = "completed";
 
+    // Dynamic AI Feedback Generation
+    const chatTranscript = interview.questions.map((q, i) => `Q${i+1}: ${q.question}\nAnswer: ${q.answer || "No answer submitted."}\nScore: ${q.score}/10 | Confidence: ${q.confidence}/10 | Communication: ${q.communication}/10 | Correctness: ${q.correctness}/10\nFeedback: ${q.feedback}`).join("\n\n");
+    const aiMessages = [
+      { role: "system", content: `You are an elite talent acquisition expert, senior technical interviewer, and professional career coach. Analyze the candidate's complete performance in the mock interview. Evaluate their responses carefully:
+- overallFeedback: 2-3 sentences summarizing general performance, structure, and pacing.
+- technicalFeedback: 2 sentences focusing specifically on technical precision, correctness, concepts explained, and logic.
+- behavioralFeedback: 2 sentences focusing specifically on communication clarity, confidence, structural framework (e.g., STAR method), and vocal pacing.
+- strengths: An array of 2-3 key technical or behavioral strengths demonstrated.
+- improvements: An array of 2-3 key growth opportunities or errors noticed in answers.
+- suggestions: An array of 3 highly personalized, actionable preparation instructions.
+Return ONLY a raw JSON object matching the exact structure below (no markdown wrappers, no comments):
+{
+  "overallFeedback": "...", "technicalFeedback": "...", "behavioralFeedback": "...",
+  "strengths": ["...", "...", "..."], "improvements": ["...", "...", "..."],
+  "suggestions": ["...", "...", "..."]
+}` },
+      { role: "user", content: `Here is the interview transcript and question-wise evaluation scores:\n\n${chatTranscript}` }
+    ];
+    
+    try {
+      const aiRes = await askAi(aiMessages);
+      let cleaned = (aiRes || "").trim();
+      const blockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (blockMatch) cleaned = blockMatch[1];
+      const objMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (objMatch) cleaned = objMatch[0];
+      cleaned = cleaned.replace(/,\s*([\}\]])/g, '$1');
+      const parsedAi = JSON.parse(cleaned);
+      if (parsedAi) {
+         interview.aiFeedback = {
+           overallFeedback: parsedAi.overallFeedback || "",
+           technicalFeedback: parsedAi.technicalFeedback || "",
+           behavioralFeedback: parsedAi.behavioralFeedback || "",
+           strengths: Array.isArray(parsedAi.strengths) ? parsedAi.strengths : [],
+           improvements: Array.isArray(parsedAi.improvements) ? parsedAi.improvements : [],
+           suggestions: Array.isArray(parsedAi.suggestions) ? parsedAi.suggestions.map(s => ({text: s, completed: false})) : []
+         };
+         interview.aiRecommendation = finalScore >= 7 ? "Selected" : "Improvement Needed";
+      }
+    } catch (e) {
+      console.error("AI feedback gen failed:", e.message);
+    }
+
     await interview.save();
 
     return res.status(200).json({
@@ -593,6 +661,7 @@ export const getInterviewReport = async (req,res) => {
 
        return res.json({
       finalScore: interview.finalScore,
+      aiFeedback: interview.aiFeedback,
       confidence: Number(avgConfidence.toFixed(1)),
       communication: Number(avgCommunication.toFixed(1)),
       correctness: Number(avgCorrectness.toFixed(1)),
@@ -604,6 +673,42 @@ export const getInterviewReport = async (req,res) => {
   }
 }
 
+export const getMyResumes = async (req, res) => {
+  try {
+    const resumes = await ResumeAnalysis.find({ userId: req.userId }).sort({ createdAt: -1 });
+    return res.status(200).json(resumes);
+  } catch (error) {
+    return res.status(500).json({ message: `failed to find currentUser Resumes ${error}` });
+  }
+}
 
+export const getResumeReport = async (req, res) => {
+  try {
+    const resume = await ResumeAnalysis.findById(req.params.id);
+    if (!resume) return res.status(404).json({ message: "Resume not found" });
+    return res.json(resume);
+  } catch (error) {
+    return res.status(500).json({ message: `failed to find Resume report ${error}` });
+  }
+}
 
-
+export const toggleSuggestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { suggestionId, completed } = req.body;
+    const interview = await Interview.findById(id);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+    
+    if (interview.aiFeedback && interview.aiFeedback.suggestions) {
+      const suggestion = interview.aiFeedback.suggestions.id(suggestionId);
+      if (suggestion) {
+        suggestion.completed = completed;
+        await interview.save();
+        return res.json(suggestion);
+      }
+    }
+    return res.status(404).json({ message: "Suggestion not found" });
+  } catch (error) {
+    return res.status(500).json({ message: `failed to toggle suggestion ${error}` });
+  }
+}

@@ -46,10 +46,10 @@ function Footer() {
                 <Link to="/" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Home</Link>
               </li>
               <li>
-                <Link to="/interview" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
+                <Link to="/avatar-interview" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
               </li>
               <li>
-                <Link to="/interview" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors text-sm font-bold">
+                <Link to="/avatar-interview" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors text-sm font-bold">
                   Interview Room
                   <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-wider py-0.5 px-2 rounded-full font-bold">Core Feature</span>
                 </Link>

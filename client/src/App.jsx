@@ -9,6 +9,8 @@ import InterviewPage from './pages/InterviewPage'
 import InterviewHistory from './pages/InterviewHistory'
 import Pricing from './pages/Pricing'
 import InterviewReport from './pages/InterviewReport'
+import ResumeReport from './pages/ResumeReport'
+import UploadResume from './pages/UploadResume'
 import AiChat from './pages/AiChat'
 import AvatarInterview from './pages/AvatarInterview'
 import Navbar from './components/Navbar'
@@ -47,6 +49,8 @@ function App() {
           <Route path='/history' element={<InterviewHistory />} />
           <Route path='/pricing' element={<Pricing />} />
           <Route path='/report/:id' element={<InterviewReport />} />
+          <Route path='/resume-report/:id' element={<ResumeReport />} />
+          <Route path='/upload-resume' element={<UploadResume />} />
           <Route path='/mentor' element={<AiChat />} />
           <Route path='/avatar-interview' element={<AvatarInterview />} />
         </Routes>

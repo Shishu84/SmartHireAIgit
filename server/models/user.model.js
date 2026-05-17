@@ -13,6 +13,27 @@ const userSchema = new mongoose.Schema({
     credits: {
         type: Number,
         default: 500000
+    },
+    profilePhoto: { 
+        type: String, 
+        default: "" 
+    },
+    skills: { 
+        type: [String], 
+        default: [] 
+    },
+    experience: { 
+        type: String, 
+        default: "" 
+    },
+    socials: {
+        linkedin: { type: String, default: "" },
+        github: { type: String, default: "" },
+        portfolio: { type: String, default: "" }
+    },
+    activeResumeUrl: { 
+        type: String, 
+        default: "" 
     }
 
 }, { timestamps: true })

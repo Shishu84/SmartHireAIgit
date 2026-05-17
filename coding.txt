@@ -1,0 +1,371 @@
+# Coding Round Module – Architecture, Workflow & Logic Design
+
+## Objective
+
+The Coding Round module will be a part of the AI Interview System where candidates can solve coding problems in a real-time coding environment. The system should automatically evaluate candidate performance using AI-powered code analysis, test case execution, and interview analytics.
+
+The module should simulate a real technical interview experience similar to modern coding assessment platforms.
+
+---
+
+# High-Level Architecture
+
+## System Components
+
+### 1. Frontend (Candidate Interface)
+
+Responsible for:
+
+* Coding editor UI
+* Problem statement display
+* Timer management
+* Language selection
+* Code execution UI
+* Submission handling
+* Real-time feedback visualization
+
+---
+
+### 2. Backend API Layer
+
+Responsible for:
+
+* Authentication
+* Question management
+* Submission APIs
+* Result processing
+* Secure code execution communication
+
+---
+
+### 3. Code Execution Engine (Sandbox)
+
+Responsible for:
+
+* Running candidate code securely
+* Test case execution
+* Resource isolation
+* Output validation
+
+Recommended:
+
+* Docker-based isolated containers
+* Sandboxed execution environment
+
+---
+
+### 4. AI Evaluation Engine
+
+Responsible for:
+
+* Code quality analysis
+* Logic evaluation
+* Time & space complexity estimation
+* AI-generated feedback
+* Suggestion generation
+
+---
+
+### 5. Database Layer
+
+Stores:
+
+* Questions
+* Candidate submissions
+* Test cases
+* Scores
+* Feedback reports
+* Interview history
+
+---
+
+# Recommended Tech Stack
+
+## Frontend
+
+* Next.js / React.js
+* Monaco Editor (VS Code-like editor)
+* Tailwind CSS
+* Framer Motion
+
+---
+
+## Backend
+
+* Node.js + Express.js
+* Python Microservice (AI analysis)
+* WebSocket support (optional)
+
+---
+
+## Code Execution
+
+* Docker Sandbox
+* Judge0 API / Custom Compiler Service
+
+Supported Languages:
+
+* JavaScript
+* Python
+* Java
+* C++
+* C
+
+---
+
+## Database
+
+* PostgreSQL / MongoDB
+
+---
+
+# Coding Round Workflow
+
+## Step 1 – Candidate Starts Coding Round
+
+* Candidate clicks “Coding Round”
+* System creates interview session
+* Questions are assigned dynamically
+
+---
+
+## Step 2 – Problem Display
+
+The UI should show:
+
+* Problem statement
+* Constraints
+* Examples
+* Input/Output format
+* Difficulty level
+* Allowed languages
+
+---
+
+## Step 3 – Candidate Writes Code
+
+## Features
+
+* Syntax highlighting
+* Auto-completion
+* Dark/Light mode support
+* Run code functionality
+* Auto-save support
+
+---
+
+## Step 4 – Run Code
+
+Candidate clicks “Run Code”
+
+System:
+
+1. Sends code to backend
+2. Backend forwards to execution engine
+3. Sandbox compiles & runs code
+4. Returns output/errors
+
+---
+
+# Code Execution Logic
+
+## Execution Pipeline
+
+Candidate Code
+↓
+Validation Layer
+↓
+Docker Sandbox
+↓
+Compilation
+↓
+Test Case Execution
+↓
+Output Comparison
+↓
+Result Generation
+
+---
+
+# Security Logic
+
+## Required Security Measures
+
+* Isolated Docker containers
+* Timeout handling
+* Memory limit enforcement
+* CPU usage restriction
+* File system isolation
+* Network access blocking
+
+---
+
+# Step 5 – Submit Solution
+
+When candidate clicks “Submit”:
+
+System should:
+
+* Execute hidden test cases
+* Calculate score
+* Generate analytics
+* Trigger AI evaluation
+
+---
+
+# Evaluation Logic
+
+## Scoring Criteria
+
+### 1. Test Case Accuracy
+
+* Passed test cases
+* Failed test cases
+
+### 2. Time Complexity
+
+* Optimized vs brute force
+
+### 3. Space Complexity
+
+### 4. Code Quality
+
+* Clean code
+* Readability
+* Naming conventions
+* Modularity
+
+### 5. Problem-Solving Approach
+
+---
+
+# AI Feedback System
+
+## AI Should Generate:
+
+* Strengths
+* Weaknesses
+* Optimization suggestions
+* Alternative approaches
+* Complexity analysis
+* Coding best practices
+
+---
+
+# Candidate Dashboard Integration
+
+After completion:
+
+* Coding round score should appear in dashboard
+* Candidate can review:
+
+  * Submitted code
+  * Test case results
+  * AI feedback
+  * Performance analytics
+
+---
+
+# Analytics & Reports
+
+## Dashboard Metrics
+
+* Accuracy %
+* Time Taken
+* Problems Solved
+* Complexity Score
+* AI Confidence Rating
+
+---
+
+# PDF Report Generation
+
+## Coding Round Report Includes
+
+* Problem details
+* Submitted code summary
+* Passed/failed test cases
+* Complexity analysis
+* AI feedback
+* Final coding score
+
+---
+
+# Admin Panel Features
+
+Admin should be able to:
+
+* Add/edit coding questions
+* Configure test cases
+* Set difficulty levels
+* Monitor candidate performance
+* View coding analytics
+
+---
+
+# Suggested Database Schema
+
+## Tables / Collections
+
+### Candidates
+
+* candidate_id
+* profile data
+
+### Coding Questions
+
+* question_id
+* title
+* difficulty
+* constraints
+
+### Submissions
+
+* submission_id
+* candidate_id
+* code
+* language
+* score
+
+### Test Cases
+
+* input
+* expected_output
+
+---
+
+# UI/UX Requirements
+
+## Coding Interface
+
+* VS Code-like editor
+* Split-screen layout
+* Responsive design
+* Timer bar
+* Submission status indicator
+
+---
+
+# Advanced Features (Recommended)
+
+## Optional Enhancements
+
+* Real-time collaborative coding
+* AI coding hints
+* Interviewer live monitoring
+* Video + coding integration
+* Anti-cheating detection
+* Tab-switch detection
+
+---
+
+# Final Expected Experience
+
+The Coding Round module should provide:
+
+* Real-world coding interview simulation
+* Secure and scalable code execution
+* AI-powered evaluation
+* Detailed coding analytics
+* Seamless dashboard integration
+* Professional SaaS-level interview experience

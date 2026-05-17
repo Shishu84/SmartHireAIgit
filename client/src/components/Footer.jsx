@@ -46,7 +46,7 @@ function Footer() {
                 <Link to="/" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Home</Link>
               </li>
               <li>
-                <Link to="/avatar-interview" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
+                <Link to="/upload-resume" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Resume Analysis</Link>
               </li>
               <li>
                 <Link to="/avatar-interview" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors text-sm font-bold">
@@ -57,15 +57,11 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Resources/Support */}
           <div>
             <h3 className="text-gray-900 font-bold mb-6 tracking-wide">Resources</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/docs" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Documentation</Link>
-              </li>
-              <li>
-                <Link to="/help" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Help Center</Link>
+                <span className="text-gray-400 text-sm font-medium cursor-not-allowed" title="Our comprehensive platform guides and APIs are currently in preparation and will be arriving in a future release!">Documentation (Coming in Future)</span>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-500 hover:text-green-600 transition-colors text-sm font-medium">Contact Details</Link>

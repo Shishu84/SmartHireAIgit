@@ -256,6 +256,17 @@ function Step3Report({ report }) {
                 ))}
             </div>
         </div>
+        
+        {/* Navigation Actions */}
+        <div className="flex justify-center mt-12 mb-8">
+            <button 
+                onClick={() => navigate('/history')}
+                className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-8 py-4 rounded-2xl font-bold transition flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+                <FaTasks className="text-xl" />
+                Return to Dashboard
+            </button>
+        </div>
 
       </div>
     </div>

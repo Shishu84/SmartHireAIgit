@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Auth from './pages/Auth'
@@ -13,14 +13,21 @@ import ResumeReport from './pages/ResumeReport'
 import UploadResume from './pages/UploadResume'
 import AiChat from './pages/AiChat'
 import AvatarInterview from './pages/AvatarInterview'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ProtectedRoute from './components/ProtectedRoute'
+import AuthRoute from './components/AuthRoute'
 
 export const ServerUrl = "http://localhost:8000"
 
 function App() {
   const dispatch = useDispatch()
   const location = useLocation()
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   
   const isInterviewRoom = location.pathname === '/interview' || location.pathname === '/avatar-interview'
 
@@ -32,6 +39,8 @@ function App() {
       } catch (error) {
         console.log(error)
         dispatch(setUserData(null))
+      } finally {
+        setIsCheckingAuth(false)
       }
     }
     getUser()
@@ -43,16 +52,57 @@ function App() {
       
       <main className="flex-1">
         <Routes>
+          {/* Public Routes */}
           <Route path='/' element={<Home />} />
-          <Route path='/auth' element={<Auth />} />
-          <Route path='/interview' element={<InterviewPage />} />
-          <Route path='/history' element={<InterviewHistory />} />
+          <Route path='/about' element={<About />} />
+          <Route path='/contact' element={<Contact />} />
+          <Route path='/privacy' element={<PrivacyPolicy />} />
+          <Route path='/terms' element={<TermsOfService />} />
           <Route path='/pricing' element={<Pricing />} />
-          <Route path='/report/:id' element={<InterviewReport />} />
-          <Route path='/resume-report/:id' element={<ResumeReport />} />
-          <Route path='/upload-resume' element={<UploadResume />} />
-          <Route path='/mentor' element={<AiChat />} />
-          <Route path='/avatar-interview' element={<AvatarInterview />} />
+
+          {/* Auth Route (Only for logged-out users) */}
+          <Route path='/auth' element={
+            <AuthRoute isCheckingAuth={isCheckingAuth}>
+              <Auth />
+            </AuthRoute>
+          } />
+
+          {/* Protected Routes (Only for logged-in users) */}
+          <Route path='/interview' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <InterviewPage />
+            </ProtectedRoute>
+          } />
+          <Route path='/history' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <InterviewHistory />
+            </ProtectedRoute>
+          } />
+          <Route path='/report/:id' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <InterviewReport />
+            </ProtectedRoute>
+          } />
+          <Route path='/resume-report/:id' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <ResumeReport />
+            </ProtectedRoute>
+          } />
+          <Route path='/upload-resume' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <UploadResume />
+            </ProtectedRoute>
+          } />
+          <Route path='/mentor' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <AiChat />
+            </ProtectedRoute>
+          } />
+          <Route path='/avatar-interview' element={
+            <ProtectedRoute isCheckingAuth={isCheckingAuth}>
+              <AvatarInterview />
+            </ProtectedRoute>
+          } />
         </Routes>
       </main>
 

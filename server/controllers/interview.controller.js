@@ -6,6 +6,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import mammoth from "mammoth";
 import WordExtractor from "word-extractor";
 import Tesseract from "tesseract.js";
+import Jimp from "jimp";
 
 import { askAi } from "../services/openRouter.service.js";
 import User from "../models/user.model.js";
@@ -44,6 +45,10 @@ export const analyzeResume = async (req, res) => {
           await pdf.destroy(); // Fix file system lock
           resumeText = pdfText.replace(/\s+/g, " ").trim();
           console.log(`pdfjs extracted ${resumeText.length} chars`);
+          
+          if (resumeText.length < 50) {
+            return res.status(400).json({ message: "Scanned PDF detected without a text layer. Please upload a standard text PDF, DOCX, or Image (JPG/PNG)." })
+          }
         } catch (e) {
           console.log("pdfjs text extraction failed:", e.message);
         }
@@ -58,9 +63,24 @@ export const analyzeResume = async (req, res) => {
         resumeText = (extracted.getBody() || "").replace(/\s+/g, " ").trim();
 
       } else if (['.png', '.jpg', '.jpeg'].includes(fileExt)) {
-        console.log("Running direct image OCR...");
-        const { data: { text } } = await Tesseract.recognize(filepath, 'eng', { logger: () => {} });
-        resumeText = (text || "").replace(/\s+/g, " ").trim();
+        console.log("Running direct image OCR with pre-processing...");
+        try {
+            const image = await Jimp.read(filepath);
+            const processedPath = filepath + "_processed.png";
+            
+            await image
+                .greyscale()
+                .contrast(1)
+                .normalize()
+                .writeAsync(processedPath);
+
+            const { data: { text } } = await Tesseract.recognize(processedPath, 'eng', { logger: () => {} });
+            resumeText = (text || "").replace(/\s+/g, " ").trim();
+            
+            fs.unlink(processedPath, () => {});
+        } catch (err) {
+            console.error("OCR Preprocessing Error:", err);
+        }
 
       } else if (fileExt === '.txt') {
         const txtBuffer = await fs.promises.readFile(filepath);
@@ -77,6 +97,9 @@ export const analyzeResume = async (req, res) => {
     }
 
     console.log(`Final resumeText length: ${resumeText.length}`);
+    if (!resumeText || resumeText.length < 20) {
+      return res.status(400).json({ message: "Could not extract text. The file might be corrupted, password protected, or completely blank." })
+    }
 
     // ── LAYER 2: AI Analysis ─────────────────────────────────────────────────
     const messages = [
@@ -711,4 +734,32 @@ export const toggleSuggestion = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: `failed to toggle suggestion ${error}` });
   }
-}
+};
+
+export const deleteInterview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const interview = await Interview.findOne({ _id: id, userId: req.userId });
+    if (!interview) {
+      return res.status(404).json({ message: "Interview report not found or unauthorized" });
+    }
+    await Interview.deleteOne({ _id: id });
+    return res.json({ message: "Interview report successfully deleted" });
+  } catch (error) {
+    return res.status(500).json({ message: `Failed to delete interview report: ${error.message}` });
+  }
+};
+
+export const deleteResume = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const resume = await ResumeAnalysis.findOne({ _id: id, userId: req.userId });
+    if (!resume) {
+      return res.status(404).json({ message: "Resume report not found or unauthorized" });
+    }
+    await ResumeAnalysis.deleteOne({ _id: id });
+    return res.json({ message: "Resume report successfully deleted" });
+  } catch (error) {
+    return res.status(500).json({ message: `Failed to delete resume report: ${error.message}` });
+  }
+};

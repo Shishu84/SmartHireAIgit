@@ -146,6 +146,7 @@ function UploadResume() {
                                     className="hidden" 
                                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                     onChange={handleChange}
+                                    onClick={(e) => (e.target.value = null)}
                                 />
                                 
                                 {!selectedFile ? (

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import { motion, AnimatePresence } from 'motion/react'
-import { FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa'
+import { FaMicrophone, FaMicrophoneSlash, FaCloudUploadAlt, FaSpinner, FaCheck } from 'react-icons/fa'
 import { BsGlobe2, BsArrowRight } from 'react-icons/bs'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import maleVideo from '../assets/videos/male-ai.mp4'
 import femaleVideo from '../assets/videos/female-ai.mp4'
 import { ServerUrl } from '../App'
@@ -10,6 +12,7 @@ import { ServerUrl } from '../App'
 const SOCKET_URL = 'http://localhost:8000'
 
 export default function AvatarInterview() {
+  const navigate = useNavigate()
   const [language, setLanguage] = useState('en')
   const [phase, setPhase] = useState('setup') // setup | active | done
   const [isMicOn, setIsMicOn] = useState(false)
@@ -25,6 +28,10 @@ export default function AvatarInterview() {
   const [qIndex, setQIndex] = useState(0)
   const [volumeLevel, setVolumeLevel] = useState(0)
 
+  const [resumeFile, setResumeFile] = useState(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [dynamicQuestions, setDynamicQuestions] = useState([])
+
   const socketRef = useRef(null)
   const videoRef = useRef(null)
   const recognitionRef = useRef(null)
@@ -33,7 +40,7 @@ export default function AvatarInterview() {
   const analyserRef = useRef(null)
   const streamRef = useRef(null)
   const rafRef = useRef(null)
-
+  
   const sampleQuestions = {
     en: [
       'Tell me about yourself and your background.',
@@ -50,7 +57,7 @@ export default function AvatarInterview() {
       'आप खुद को 5 साल में कहाँ देखते हैं?',
     ],
   }
-
+  
   // ── Socket.IO setup ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'active') return
@@ -154,12 +161,45 @@ export default function AvatarInterview() {
     setIsMicOn(prev => !prev)
   }
 
+  const getQuestionsList = () => {
+    return dynamicQuestions.length > 0 ? dynamicQuestions : sampleQuestions[language]
+  }
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setResumeFile(file)
+    setIsUploading(true)
+    setDynamicQuestions([])
+
+    const formData = new FormData()
+    formData.append("resume", file)
+    try {
+      const res = await axios.post(`${ServerUrl}/api/avatar/upload-resume`, formData)
+      if (res.data.success) {
+        const { role: fetchedRole, experience: fetchedExp, questions } = res.data.data
+        if (fetchedRole) setRole(fetchedRole)
+        if (fetchedExp) setExperience(fetchedExp)
+        if (questions && questions.length > 0) {
+          setDynamicQuestions(questions)
+        }
+      }
+    } catch (error) {
+      console.error("Resume upload failed", error)
+      const errorMsg = error.response?.data?.message || (language === 'en' ? "Failed to process resume." : "रेज़्यूमे प्रोसेस करने में विफल।")
+      alert(errorMsg)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const startSession = () => {
     if (!role || !experience) return
     setPhase('active')
     setQIndex(0)
     setTimeout(() => {
-      const q = sampleQuestions[language][0]
+      const qs = getQuestionsList()
+      const q = qs[0]
       setCurrentQ(q)
       speakText(language === 'en'
         ? `Hello! Welcome to your ${role} interview. Let's begin.`
@@ -186,12 +226,13 @@ export default function AvatarInterview() {
   }
 
   const nextQuestion = () => {
+    const qs = getQuestionsList()
     const next = qIndex + 1
-    if (next >= sampleQuestions[language].length) { setPhase('done'); return }
+    if (next >= qs.length) { setPhase('done'); return }
     setQIndex(next)
     setAvatarReply('')
     setTranscript('')
-    const q = sampleQuestions[language][next]
+    const q = qs[next]
     setCurrentQ(q)
     speakText(q)
   }
@@ -223,6 +264,48 @@ export default function AvatarInterview() {
             <BsGlobe2 size={14} />
             {language === 'en' ? 'English' : 'हिंदी'}
           </button>
+        </div>
+
+        {/* Resume Upload Module */}
+        <div className="mb-6">
+          <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-2 block">
+            {language === 'en' ? 'Upload Resume (Optional)' : 'रेज़्यूमे अपलोड करें (वैकल्पिक)'}
+          </label>
+          <div className="relative group">
+            <input 
+              type="file" 
+              accept=".pdf,.doc,.docx"
+              onChange={handleResumeUpload}
+              onClick={(e) => (e.target.value = null)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              disabled={isUploading}
+            />
+            <div className={`w-full bg-white/5 border border-dashed rounded-xl px-4 py-4 flex items-center justify-center gap-3 transition-all ${resumeFile ? 'border-green-400/50 text-green-400' : 'border-white/20 text-white/70 group-hover:border-purple-400 group-hover:bg-white/10'}`}>
+              {isUploading ? (
+                <FaSpinner className="animate-spin text-xl" />
+              ) : resumeFile ? (
+                <FaCheck className="text-xl" />
+              ) : (
+                <FaCloudUploadAlt className="text-2xl" />
+              )}
+              <span className="font-medium text-sm">
+                {isUploading ? (language === 'en' ? 'Parsing...' : 'प्रोसेसिंग...') 
+                  : resumeFile ? resumeFile.name 
+                  : (language === 'en' ? 'Click or drag PDF/DOC here' : 'पीडीएफ/डॉक यहाँ अपलोड करें')}
+              </span>
+            </div>
+          </div>
+          {resumeFile && !isUploading && (
+            <p className="text-green-400/80 text-xs mt-2 text-center">
+              {language === 'en' ? 'Resume parsed! Questions generated dynamically.' : 'रेज़्यूमे प्रोसेस हो गया! प्रश्न तैयार हैं।'}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 mb-6">
+          <div className="h-px bg-white/10 flex-1"></div>
+          <span className="text-xs text-white/40 uppercase font-semibold">OR Enter Manually</span>
+          <div className="h-px bg-white/10 flex-1"></div>
         </div>
 
         <div className="space-y-4 mb-6">
@@ -257,14 +340,22 @@ export default function AvatarInterview() {
   if (phase === 'done') return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="text-center text-white max-w-md">
+        className="text-center text-white max-w-md w-full">
         <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
         <h2 className="text-3xl font-bold mb-3">{language === 'en' ? 'Interview Complete!' : 'साक्षात्कार पूर्ण!'}</h2>
         <p className="text-white/60 mb-8">{language === 'en' ? 'Great job! You answered all questions.' : 'बहुत अच्छा! आपने सभी प्रश्नों के उत्तर दिए।'}</p>
-        <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0) }}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 rounded-2xl font-bold hover:opacity-90 transition">
-          {language === 'en' ? 'Start New Interview' : 'नया साक्षात्कार शुरू करें'}
-        </button>
+        
+        <div className="flex flex-col gap-3">
+          <button onClick={() => navigate('/history')}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 rounded-2xl font-bold hover:opacity-90 transition">
+            {language === 'en' ? 'Go to Dashboard' : 'डैशबोर्ड पर जाएँ'}
+          </button>
+          
+          <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0) }}
+            className="w-full bg-white/10 backdrop-blur border border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition">
+            {language === 'en' ? 'Start New Interview' : 'नया साक्षात्कार शुरू करें'}
+          </button>
+        </div>
       </motion.div>
     </div>
   )

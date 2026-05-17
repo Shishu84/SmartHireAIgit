@@ -205,7 +205,8 @@ function Step1SetUp({ onStart }) {
                                     accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
                                     id="resumeUpload"
                                     className='hidden'
-                                    onChange={(e) => setResumeFile(e.target.files[0])} />
+                                    onChange={(e) => setResumeFile(e.target.files[0])}
+                                    onClick={(e) => (e.target.value = null)} />
 
                                 <p className='text-gray-600 font-medium'>
                                     {resumeFile ? resumeFile.name : "Click to upload resume (Optional)"}

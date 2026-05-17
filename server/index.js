@@ -12,6 +12,7 @@ import interviewRouter from "./routes/interview.route.js"
 import paymentRouter from "./routes/payment.route.js"
 import chatRouter from "./routes/chat.route.js"
 import avatarRouter from "./routes/avatar.route.js"
+import contactRouter from "./routes/contact.route.js"
 import { registerAvatarSocket } from "./controllers/avatar.controller.js"
 
 const app = express()
@@ -48,6 +49,7 @@ app.use("/api/interview", interviewRouter)
 app.use("/api/payment", paymentRouter)
 app.use("/api/chat", chatRouter)
 app.use("/api/avatar", avatarRouter)
+app.use("/api/contact", contactRouter)
 
 // Socket.IO real-time avatar interview namespace
 const avatarNs = io.of("/avatar-interview")

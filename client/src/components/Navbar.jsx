@@ -45,8 +45,8 @@ function Navbar() {
             { label: "Dashboard & Resumes", action: () => { navigate("/history"); setMobileMenuOpen(false); } },
         ] : []),
         { label: "Pricing", action: () => { navigate("/pricing"); setMobileMenuOpen(false); } },
-        { label: "About", action: () => { navigate("/"); setMobileMenuOpen(false); } },
-        { label: "Contact", action: () => { navigate("/"); setMobileMenuOpen(false); } },
+        { label: "About", action: () => { navigate("/about"); setMobileMenuOpen(false); } },
+        { label: "Contact", action: () => { navigate("/contact"); setMobileMenuOpen(false); } },
     ]
 
     return (
@@ -94,8 +94,8 @@ function Navbar() {
                         </div>
                     </div>
 
-                    <button onClick={() => navigate("/")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>About</button>
-                    <button onClick={() => navigate("/")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
+                    <button onClick={() => navigate("/about")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>About</button>
+                    <button onClick={() => navigate("/contact")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
 
                     {/* Theme Toggle */}
                     <div className='relative'>

@@ -6,7 +6,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import mammoth from "mammoth";
 import WordExtractor from "word-extractor";
 import Tesseract from "tesseract.js";
-import Jimp from "jimp";
+import { Jimp } from "jimp";
 
 import { askAi } from "../services/openRouter.service.js";
 import User from "../models/user.model.js";
@@ -42,13 +42,64 @@ export const analyzeResume = async (req, res) => {
             const content = await page.getTextContent();
             pdfText += content.items.map(item => item.str).join(" ") + "\n";
           }
-          await pdf.destroy(); // Fix file system lock
           resumeText = pdfText.replace(/\s+/g, " ").trim();
           console.log(`pdfjs extracted ${resumeText.length} chars`);
           
           if (resumeText.length < 50) {
-            return res.status(400).json({ message: "Scanned PDF detected without a text layer. Please upload a standard text PDF, DOCX, or Image (JPG/PNG)." })
+            console.log("PDF text layer is too small, falling back to embedded image OCR...");
+            let ocrText = "";
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const ops = await page.getOperatorList();
+                for (let i = 0; i < ops.fnArray.length; i++) {
+                    if (ops.fnArray[i] === pdfjsLib.OPS.paintImageXObject) {
+                        const imgKey = ops.argsArray[i][0];
+                        const imgText = await new Promise((resolve) => {
+                            page.objs.get(imgKey, async (img) => {
+                                try {
+                                    if (!img) return resolve("");
+                                    const pixels = img.width * img.height;
+                                    const rgbaBuffer = Buffer.alloc(pixels * 4);
+                                    const imgData = img.data;
+
+                                    if (imgData.length === pixels * 3) {
+                                        for (let p = 0, j = 0; p < imgData.length; p += 3, j += 4) {
+                                            rgbaBuffer[j] = imgData[p];
+                                            rgbaBuffer[j + 1] = imgData[p + 1];
+                                            rgbaBuffer[j + 2] = imgData[p + 2];
+                                            rgbaBuffer[j + 3] = 255;
+                                        }
+                                    } else if (imgData.length === pixels * 4) {
+                                        for (let p = 0; p < imgData.length; p++) rgbaBuffer[p] = imgData[p];
+                                    } else {
+                                        for (let p = 0, j = 0; p < imgData.length; p++, j += 4) {
+                                            rgbaBuffer[j] = imgData[p];
+                                            rgbaBuffer[j + 1] = imgData[p];
+                                            rgbaBuffer[j + 2] = imgData[p];
+                                            rgbaBuffer[j + 3] = 255;
+                                        }
+                                    }
+
+                                    const jImage = new Jimp({ width: img.width, height: img.height, data: rgbaBuffer });
+                                    const tempPath = filepath + `_page${pageNum}_img.png`;
+                                    
+                                    await jImage.greyscale().contrast(1).normalize().write(tempPath);
+                                    const { data: { text } } = await Tesseract.recognize(tempPath, 'eng', { logger: () => {} });
+                                    fs.unlink(tempPath, () => {});
+                                    resolve(text);
+                                } catch (err) {
+                                    console.error("PDF Image OCR error:", err);
+                                    resolve("");
+                                }
+                            });
+                        });
+                        ocrText += imgText + "\n";
+                    }
+                }
+            }
+            resumeText = ocrText.replace(/\s+/g, " ").trim();
           }
+          await pdf.destroy(); // Fix file system lock
         } catch (e) {
           console.log("pdfjs text extraction failed:", e.message);
         }
@@ -72,7 +123,7 @@ export const analyzeResume = async (req, res) => {
                 .greyscale()
                 .contrast(1)
                 .normalize()
-                .writeAsync(processedPath);
+                .write(processedPath);
 
             const { data: { text } } = await Tesseract.recognize(processedPath, 'eng', { logger: () => {} });
             resumeText = (text || "").replace(/\s+/g, " ").trim();
@@ -310,65 +361,41 @@ export const generateQuestion = async (req, res) => {
     }
 
     const messages = [
-
       {
         role: "system",
-        content: `
-You are a real human interviewer conducting a professional interview.
-
+        content: `You are a real human interviewer conducting a professional interview.
 Speak in simple, natural English as if you are directly talking to the candidate.
 
-Generate exactly 5 interview questions.
+Generate EXACTLY ONE initial interview question to start the interview.
 
 Strict Rules:
-- Each question must contain between 15 and 25 words.
-- Each question must be a single complete sentence.
-- Do NOT number them.
-- Do NOT add explanations.
-- Do NOT add extra text before or after.
-- One question per line only.
+- The question must contain between 15 and 25 words.
+- It must be a single complete sentence.
+- Do NOT number it.
+- Do NOT add explanations or extra text.
 - Keep language simple and conversational.
-- Questions must feel practical and realistic.
 
-Difficulty progression:
-Question 1 → easy  
-Question 2 → easy  
-Question 3 → medium  
-Question 4 → medium  
-Question 5 → hard  
+If InterviewMode is "HR": Ask a welcoming behavioral or introductory question (e.g., "Tell me about yourself" or "What are your career goals?").
+If InterviewMode is "Technical": Ask an initial technical question based on their primary skills or projects.
 
-Make questions based on the candidate’s role, experience,interviewMode, projects, skills, and resume details.
-`
-      }
-      ,
+Make the question based on the candidate’s role, experience, projects, skills, and resume details.`
+      },
       {
         role: "user",
         content: userPrompt
       }
     ];
 
-
-    const aiResponse = await askAi(messages)
+    const aiResponse = await askAi(messages);
 
     if (!aiResponse || !aiResponse.trim()) {
-           
-      return res.status(500).json({
-        message: "AI returned empty response."
-      });
-
+      return res.status(500).json({ message: "AI returned empty response." });
     }
 
-    const questionsArray = aiResponse
-      .split("\n")
-      .map(q => q.replace(/^(?:\d+[\.\)]\s*|Question\s*\d+:\s*|Q\d+:\s*|-\s*)/i, "").trim())
-      .filter(q => q.length > 0)
-      .slice(0, 5);
+    const firstQuestion = aiResponse.replace(/^(?:\d+[\.\)]\s*|Question\s*\d+:\s*|Q\d+:\s*|-\s*)/i, "").trim();
 
-    if (questionsArray.length === 0) {
-      
-      return res.status(500).json({
-        message: "AI failed to generate questions."
-      });
+    if (!firstQuestion) {
+      return res.status(500).json({ message: "AI failed to generate question." });
     }
 
     user.credits -= 50;
@@ -380,12 +407,12 @@ Make questions based on the candidate’s role, experience,interviewMode, projec
       experience,
       mode,
       resumeText: safeResume,
-      questions: questionsArray.map((q, index) => ({
-        question: q,
-        difficulty: ["easy", "easy", "medium", "medium", "hard"][index],
-        timeLimit: [60, 60, 90, 90, 120][index],
-      }))
-    })
+      questions: [{
+        question: firstQuestion,
+        difficulty: "easy",
+        timeLimit: 60,
+      }]
+    });
 
     res.json({
       interviewId: interview._id,
@@ -433,63 +460,47 @@ export const submitAnswer = async (req, res) => {
     }
 
 
+    const isLastQuestion = questionIndex >= 7; // Max 8 questions
+    const minQuestionsReached = questionIndex >= 3; // Min 4 questions (index 0,1,2,3)
+
+    const transcript = interview.questions.slice(0, questionIndex + 1).map((q, i) => `Q${i+1}: ${q.question}\nA${i+1}: ${i === questionIndex ? answer : q.answer}`).join("\n\n");
+
     const messages = [
       {
         role: "system",
-        content: `
-You are a professional human interviewer evaluating a candidate's answer in a real interview.
+        content: `You are a professional human interviewer evaluating a candidate's answer and deciding how to proceed in a real interview.
 
-Evaluate naturally and fairly, like a real person would.
+Evaluate naturally and fairly. Score the answer (0 to 10) on Confidence, Communication, and Correctness.
 
-Score the answer in these areas (0 to 10):
-
-1. Confidence – Does the answer sound clear, confident, and well-presented?
-2. Communication – Is the language simple, clear, and easy to understand?
-3. Correctness – Is the answer accurate, relevant, and complete?
-
-Rules:
-- Be realistic and unbiased.
-- Do not give random high scores.
-- If the answer is weak, score low.
-- If the answer is strong and detailed, score high.
-- Consider clarity, structure, and relevance.
-
-Calculate:
-finalScore = average of confidence, communication, and correctness (rounded to nearest whole number).
-
-Feedback Rules:
-- Write natural human feedback.
-- 10 to 15 words only.
-- Sound like real interview feedback.
-- Can suggest improvement if needed.
-- Do NOT repeat the question.
-- Do NOT explain scoring.
-- Keep tone professional and honest.
+Based on the transcript, generate the NEXT question (unless you decide to finish the interview).
+- The next question should logically follow up on the candidate's answer (e.g., if they mention a technology, ask about it) or move to a new topic relevant to their role (${interview.role}).
+- If they gave a strong answer, increase the difficulty. If weak, ask for clarification or a simpler question.
+- Maximum questions allowed is 8. You are currently evaluating question ${questionIndex + 1}.
+${minQuestionsReached ? "- You have reached the minimum required questions. You may choose to finish the interview by setting isFinished to true and omitting nextQuestion if you have enough signals." : "- You MUST generate a nextQuestion."}
+${isLastQuestion ? "- This is the final question. You MUST set isFinished to true and omit nextQuestion." : ""}
 
 Return ONLY valid JSON in this format:
-
 {
   "confidence": number,
   "communication": number,
   "correctness": number,
   "finalScore": number,
-  "feedback": "short human feedback"
-}
-`
-      }
-      ,
+  "feedback": "short human feedback (10-15 words)",
+  "isFinished": boolean,
+  "nextQuestion": {
+    "question": "The next interview question text (15-25 words)",
+    "difficulty": "easy, medium, or hard",
+    "timeLimit": 60, 90, or 120 (number)
+  }
+}`
+      },
       {
         role: "user",
-        content: `
-Question: ${question.question}
-Answer: ${answer}
-`
+        content: `Interview Context: Role: ${interview.role}, Experience: ${interview.experience}, Mode: ${interview.mode}\n\nTranscript:\n${transcript}`
       }
     ];
 
-
-    const aiResponse = await askAi(messages)
-
+    const aiResponse = await askAi(messages);
 
     let parsed;
     try {
@@ -506,28 +517,44 @@ Answer: ${answer}
     } catch (parseError) {
       console.error("AI answer evaluation parse error:", parseError.message);
       parsed = {
-        confidence: 50,
-        communication: 50,
-        correctness: 50,
-        finalScore: 50,
-        feedback: "We could not fully process this answer due to an AI format issue, but your response has been recorded."
+        confidence: 5,
+        communication: 5,
+        correctness: 5,
+        finalScore: 5,
+        feedback: "Response recorded.",
+        isFinished: isLastQuestion || minQuestionsReached,
+        nextQuestion: (isLastQuestion || minQuestionsReached) ? null : { question: "Can you elaborate on your experience?", difficulty: "medium", timeLimit: 60 }
       };
     }
 
     question.answer = answer;
-    question.confidence = parsed.confidence;
-    question.communication = parsed.communication;
-    question.correctness = parsed.correctness;
-    question.score = parsed.finalScore;
-    question.feedback = parsed.feedback;
+    question.confidence = parsed.confidence || 0;
+    question.communication = parsed.communication || 0;
+    question.correctness = parsed.correctness || 0;
+    question.score = parsed.finalScore || 0;
+    question.feedback = parsed.feedback || "Response recorded.";
+
+    let nextQuestion = null;
+    let isFinished = parsed.isFinished === true || isLastQuestion;
+
+    if (!isFinished && parsed.nextQuestion && parsed.nextQuestion.question) {
+        nextQuestion = {
+            question: parsed.nextQuestion.question,
+            difficulty: parsed.nextQuestion.difficulty || "medium",
+            timeLimit: parsed.nextQuestion.timeLimit || 60,
+        };
+        interview.questions.push(nextQuestion);
+    } else {
+        isFinished = true;
+    }
+
     await interview.save();
 
-
-    return res.status(200).json({feedback :parsed.feedback})
-  } catch (error) {
-    return res.status(500).json({message:`failed to submit answer ${error}`})
-
-  }
+    return res.status(200).json({ 
+        feedback: question.feedback,
+        nextQuestion: nextQuestion,
+        isFinished: isFinished
+    });
 }
 
 
@@ -618,12 +645,15 @@ Return ONLY a raw JSON object matching the exact structure below (no markdown wr
     await interview.save();
 
     return res.status(200).json({
-       finalScore: Number(finalScore.toFixed(1)),
+      _id: interview._id,
+      finalScore: Number(finalScore.toFixed(1)),
       confidence: Number(avgConfidence.toFixed(1)),
       communication: Number(avgCommunication.toFixed(1)),
       correctness: Number(avgCorrectness.toFixed(1)),
+      aiFeedback: interview.aiFeedback || null,
       questionWiseScore: interview.questions.map((q) => ({
         question: q.question,
+        answer: q.answer || "",
         score: q.score || 0,
         feedback: q.feedback || "",
         confidence: q.confidence || 0,
@@ -683,12 +713,21 @@ export const getInterviewReport = async (req,res) => {
       : 0;
 
        return res.json({
+      _id: interview._id,
       finalScore: interview.finalScore,
       aiFeedback: interview.aiFeedback,
       confidence: Number(avgConfidence.toFixed(1)),
       communication: Number(avgCommunication.toFixed(1)),
       correctness: Number(avgCorrectness.toFixed(1)),
-      questionWiseScore: interview.questions
+      questionWiseScore: interview.questions.map(q => ({
+        question: q.question,
+        answer: q.answer || "",
+        score: q.score || 0,
+        feedback: q.feedback || "",
+        confidence: q.confidence || 0,
+        communication: q.communication || 0,
+        correctness: q.correctness || 0,
+      }))
     });
 
   } catch (error) {

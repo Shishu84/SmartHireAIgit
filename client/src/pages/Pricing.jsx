@@ -110,12 +110,15 @@ function Pricing() {
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50 py-16 px-6'>
 
-      <div className='max-w-6xl mx-auto mb-14 flex items-start gap-4'>
-
-        <button onClick={() => navigate("/")} className='mt-2 p-3 rounded-full bg-white shadow hover:shadow-md transition'>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className='max-w-6xl mx-auto mb-14 flex items-start gap-4'
+      >
+        <button onClick={() => navigate("/")} className='mt-2 p-3 rounded-full bg-white shadow hover:shadow-md transition btn-press'>
           <FaArrowLeft className='text-gray-600' />
         </button>
-
         <div className="text-center w-full">
           <h1 className="text-4xl font-bold text-gray-800">
             Choose Your Plan
@@ -124,7 +127,7 @@ function Pricing() {
             Flexible pricing to match your interview preparation goals.
           </p>
         </div>
-      </div>
+      </motion.div>
 
 
       <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto'>
@@ -134,15 +137,19 @@ function Pricing() {
 
           return (
             <motion.div key={plan.id}
-              whileHover={!plan.default && { scale: 1.03 }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: plans.indexOf(plan) * 0.12 }}
+              whileHover={!plan.default ? { scale: 1.03, y: -4 } : {}}
               onClick={() => !plan.default && setSelectedPlan(plan.id)}
-
-              className={`relative rounded-3xl p-8 transition-all duration-300 border 
+              className={`relative rounded-3xl p-8 transition-all duration-300 border cursor-pointer
                 ${isSelected
-                  ? "border-emerald-600 shadow-2xl bg-white"
-                  : "border-gray-200 bg-white shadow-md"
+                  ? plan.id === 'pro'
+                    ? 'border-emerald-500 shadow-2xl shadow-emerald-200/60 bg-white ring-2 ring-emerald-400/30'
+                    : 'border-emerald-600 shadow-2xl bg-white'
+                  : 'border-gray-200 bg-white shadow-md hover:shadow-lg'
                 }
-                ${plan.default ? "cursor-default" : "cursor-pointer"}
+                ${plan.default ? 'cursor-default' : ''}
               `}
             >
 
@@ -193,8 +200,9 @@ function Pricing() {
               </div>
 
               {!plan.default &&
-                <button
-                disabled={loadingPlan === plan.id}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  disabled={loadingPlan === plan.id}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isSelected) {
@@ -202,17 +210,17 @@ function Pricing() {
                     } else {
                       handlePayment(plan)
                     }
-                  }} className={`w-full mt-8 py-3 rounded-xl font-semibold transition ${isSelected
-                    ? "bg-emerald-600 text-white hover:opacity-90"
-                    : "bg-gray-100 text-gray-700 hover:bg-emerald-50"
-                    }`}>
+                  }}
+                  className={`btn-press w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-emerald-50'
+                  }`}
+                >
                   {loadingPlan === plan.id
-                    ? "Processing..."
-                    : isSelected
-                      ? "Proceed to Pay"
-                      : "Select Plan"}
-
-                </button>
+                    ? <span className='flex items-center justify-center gap-2'><span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />Processing...</span>
+                    : isSelected ? 'Proceed to Pay' : 'Select Plan'}
+                </motion.button>
               }
             </motion.div>
           )

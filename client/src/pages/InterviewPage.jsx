@@ -6,7 +6,9 @@ import Step3Report from '../components/Step3Report'
 function InterviewPage() {
     const [step, setStep] = useState(() => {
         const savedStep = localStorage.getItem('interviewStep');
-        return savedStep ? Number(savedStep) : 1;
+        // Only restore step 1 or 2, never step 3 — avoid landing on stale report
+        const parsed = savedStep ? Number(savedStep) : 1;
+        return parsed === 3 ? 1 : parsed;
     });
     
     const [interviewData, setInterviewData] = useState(() => {
@@ -15,16 +17,22 @@ function InterviewPage() {
     });
 
     useEffect(() => {
-        localStorage.setItem('interviewStep', step);
+        // Only persist step 1 and 2; clear on step 3
+        if (step === 3) {
+            localStorage.removeItem('interviewStep');
+        } else {
+            localStorage.setItem('interviewStep', step);
+        }
     }, [step]);
 
     useEffect(() => {
-        if (interviewData) {
+        if (interviewData && step < 3) {
             localStorage.setItem('interviewData', JSON.stringify(interviewData));
-        } else {
+        } else if (step === 3) {
+            // Clear setup data once interview is done — don't persist the report
             localStorage.removeItem('interviewData');
         }
-    }, [interviewData]);
+    }, [interviewData, step]);
 
   return (
     <div className='min-h-screen bg-gray-50'>

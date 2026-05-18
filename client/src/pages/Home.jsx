@@ -38,10 +38,15 @@ function Home() {
 
           {/* Badge */}
           <div className='flex justify-center mb-6'>
-            <div className='bg-gray-100 text-gray-600 text-xs sm:text-sm px-4 py-2 rounded-full flex items-center gap-2'>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
+              className='animate-float bg-gray-100 text-gray-600 text-xs sm:text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow-sm'
+            >
               <HiSparkles size={16} className="text-green-600" />
               AI Powered Smart Interview Platform
-            </div>
+            </motion.div>
           </div>
 
           {/* Hero */}
@@ -60,9 +65,9 @@ function Home() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
               className='text-gray-500 dark:text-gray-400 mt-5 max-w-xl mx-auto text-base sm:text-lg px-4'>
               Role-based mock interviews with smart follow-ups,
               adaptive difficulty and real-time performance evaluation.
@@ -140,7 +145,7 @@ function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.02 }}
-                  className='bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all'>
+                  className='card-glow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-sm transition-all'>
                   <div className='flex flex-col sm:flex-row items-center gap-6 sm:gap-8'>
                     <div className='w-full sm:w-1/2 flex justify-center'>
                       <img src={item.image} alt={item.title} className='w-40 sm:w-full h-auto object-contain max-h-48 sm:max-h-64' />
@@ -180,7 +185,7 @@ function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ y: -6 }}
-                  className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all">
+                  className="card-glow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 sm:p-8 shadow-sm transition-all">
                   <div className='flex items-center justify-between gap-4'>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg sm:text-xl mb-2 dark:text-white">{mode.title}</h3>
@@ -200,18 +205,23 @@ function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className='bg-black dark:bg-slate-800 border border-transparent dark:border-slate-700 text-white rounded-3xl p-8 sm:p-12 text-center mb-10'>
-            <h2 className='text-2xl sm:text-4xl font-semibold mb-4'>Ready to ace your next interview?</h2>
-            <p className='text-gray-400 mb-8 text-sm sm:text-base max-w-lg mx-auto'>
-              Join thousands of candidates improving their interview skills with AI-powered coaching.
-            </p>
-            <motion.button
-              onClick={() => guardedNav("/avatar-interview")}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className='bg-white text-black px-8 sm:px-10 py-3 rounded-full font-semibold hover:bg-gray-100 transition w-full sm:w-auto'>
-              Start Free Practice
-            </motion.button>
+            className='relative overflow-hidden bg-black dark:bg-slate-800 border border-transparent dark:border-slate-700 text-white rounded-3xl p-8 sm:p-12 text-center mb-10'>
+            {/* Subtle animated gradient overlay */}
+            <div className='absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-emerald-900/20 animate-gradient-x pointer-events-none rounded-3xl' />
+            <div className='relative z-10'>
+              <h2 className='text-2xl sm:text-4xl font-semibold mb-4'>Ready to ace your next interview?</h2>
+              <p className='text-gray-400 mb-8 text-sm sm:text-base max-w-lg mx-auto'>
+                Join thousands of candidates improving their interview skills with AI-powered coaching.
+              </p>
+              <motion.button
+                onClick={() => guardedNav("/avatar-interview")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className='relative overflow-hidden bg-white text-black px-8 sm:px-10 py-3 rounded-full font-semibold hover:bg-gray-100 transition w-full sm:w-auto btn-press'>
+                <span className='animate-shimmer absolute inset-0 rounded-full' />
+                <span className='relative'>Start Free Practice</span>
+              </motion.button>
+            </div>
           </motion.div>
 
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import axios from 'axios';
 import { ServerUrl } from '../App';
 import { FaRobot, FaBrain, FaCode, FaChartLine, FaFileAlt, FaLock, FaUsers, FaArrowRight, FaTrophy, FaLightbulb, FaBriefcase, FaGraduationCap, FaCheck, FaEye } from 'react-icons/fa';
@@ -92,89 +93,135 @@ function About() {
             {/* Hero Section */}
             <section className="relative overflow-hidden pt-20 pb-24 lg:pt-28 lg:pb-32 bg-linear-to-b from-emerald-50/50 via-transparent to-transparent dark:from-emerald-950/15">
                 <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
+                    <motion.span
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6"
+                    >
                         <FaRobot /> The Future of Hiring Preparation
-                    </span>
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-6">
+                    </motion.span>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-6"
+                    >
                         AI-Powered Interview & <br />
                         <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300">
                             Resume Intelligence
                         </span> Platform
-                    </h1>
-                    <p className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-8 font-medium">
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-8 font-medium"
+                    >
                         Transforming hiring preparation with AI-driven interview analysis, coding assessments, and advanced recruiter-level resume diagnostics.
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <button 
+                    </motion.p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.35 }}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                    >
+                        <button
                             onClick={() => navigate("/auth")}
-                            className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
+                            className="btn-press w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
                         >
                             Get Started <FaArrowRight />
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 const el = document.getElementById("features");
                                 el?.scrollIntoView({ behavior: 'smooth' });
                             }}
-                            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-700 font-bold rounded-xl shadow-xs transition"
+                            className="btn-press w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-700 font-bold rounded-xl shadow-xs transition"
                         >
                             Explore Features
                         </button>
-                    </div>
+                    </motion.div>
                 </div>
                 {/* Background Blobs */}
-                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full filter blur-3xl" />
-                <div className="absolute top-1/3 right-1/4 -translate-y-1/2 w-80 h-80 bg-teal-500/10 dark:bg-teal-500/5 rounded-full filter blur-3xl" />
+                <div className="animate-float absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full filter blur-3xl" />
+                <div className="animate-float absolute top-1/3 right-1/4 -translate-y-1/2 w-80 h-80 bg-teal-500/10 dark:bg-teal-500/5 rounded-full filter blur-3xl" style={{ animationDelay: '1.5s' }} />
             </section>
 
             {/* Platform Overview */}
             <section className="py-16 bg-white dark:bg-slate-800/40 border-y border-gray-100 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                        <div className="lg:col-span-7 space-y-6">
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6 }}
+                            viewport={{ once: true }}
+                            className="lg:col-span-7 space-y-6"
+                        >
                             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                                 Empowering Careers with Recruiter-Grade Evaluation
                             </h2>
                             <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-                                Our platform helps candidates prepare for competitive technical roles through realistic AI mock interviews, live compiler coding assessments, and deep ATS resume analysis. 
+                                Our platform helps candidates prepare for competitive technical roles through realistic AI mock interviews, live compiler coding assessments, and deep ATS resume analysis.
                             </p>
                             <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
                                 Whether you are an entry-level fresher seeking structure or an experienced professional aiming to polish your soft signals, SmartHire.AI gives you the tools to succeed at the highest corporate screening standards.
                             </p>
-                        </div>
-                        <div className="lg:col-span-5 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-700/50 p-8 rounded-3xl border border-emerald-100 dark:border-slate-700/60 shadow-xs">
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.15 }}
+                            viewport={{ once: true }}
+                            className="lg:col-span-5 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-700/50 p-8 rounded-3xl border border-emerald-100 dark:border-slate-700/60 shadow-xs"
+                        >
                             <div className="flex items-center gap-3 mb-4 text-emerald-600 dark:text-emerald-400">
                                 <FaLightbulb className="text-2xl shrink-0" />
                                 <h3 className="font-bold text-xl text-gray-900 dark:text-white">Why It Exists</h3>
                             </div>
                             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
-                                Traditional hiring preparation is scattered. Candidates upload resumes without knowing their ATS readability, and coding challenges rarely check semantic reasoning. 
+                                Traditional hiring preparation is scattered. Candidates upload resumes without knowing their ATS readability, and coding challenges rarely check semantic reasoning.
                             </p>
                             <span className="text-emerald-700 dark:text-emerald-400 text-sm font-bold block">
                                 👉 SmartHire.AI connects the entire journey into a single unified preparation hub.
                             </span>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </section>
 
             {/* Core Features Grid */}
             <section id="features" className="py-20 max-w-7xl mx-auto px-6">
-                <div className="text-center mb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    viewport={{ once: true }}
+                    className="text-center mb-16"
+                >
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">
                         State-of-the-Art Feature Set
                     </h2>
                     <p className="max-w-2xl mx-auto text-gray-500 dark:text-gray-400">
                         Everything you need to master your interview pipeline, parsed and verified by our modern intelligence systems.
                     </p>
-                </div>
+                </motion.div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {coreFeatures.map((feat, idx) => (
-                        <div key={idx} className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xs border border-gray-100 dark:border-slate-700/50 hover:border-emerald-200 dark:hover:border-emerald-950 transition-all hover:-translate-y-1">
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.45, delay: idx * 0.08 }}
+                            viewport={{ once: true }}
+                            whileHover={{ y: -6, boxShadow: '0 20px 40px -12px rgba(16,185,129,0.15)' }}
+                            className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xs border border-gray-100 dark:border-slate-700/50 hover:border-emerald-200 dark:hover:border-emerald-950 transition-all"
+                        >
                             <div className="mb-5">{feat.icon}</div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{feat.title}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{feat.desc}</p>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </section>

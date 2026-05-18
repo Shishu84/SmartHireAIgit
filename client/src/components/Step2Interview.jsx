@@ -12,7 +12,9 @@ import { ServerUrl } from '../App'
 import { BsArrowRight, BsPauseFill, BsPlayFill, BsArrowRepeat } from 'react-icons/bs'
 
 function Step2Interview({ interviewData, onFinish }) {
-  const { interviewId, questions, userName } = interviewData;
+  const { interviewId, userName } = interviewData;
+  const [dynamicQuestions, setDynamicQuestions] = useState(interviewData.questions || []);
+  const [isInterviewFinished, setIsInterviewFinished] = useState(false);
   const [interviewPhase, setInterviewPhase] = useState('entry'); // 'entry', 'check', 'active'
   const [entryCountdown, setEntryCountdown] = useState(5);
   const [systemChecks, setSystemChecks] = useState({ mic: 'pending', error: '' }); // 'pending', 'passed', 'failed'
@@ -36,7 +38,7 @@ function Step2Interview({ interviewData, onFinish }) {
   const analyserRef = useRef(null);
   const mediaStreamRef = useRef(null);
 
-  const currentQuestion = questions ? questions[currentIndex] : null;
+  const currentQuestion = dynamicQuestions ? dynamicQuestions[currentIndex] : null;
   // Phase 1: Entry Countdown
   useEffect(() => {
     if (interviewPhase === 'entry') {
@@ -199,8 +201,10 @@ function Step2Interview({ interviewData, onFinish }) {
         setIsIntroPhase(false);
       } else if (currentQuestion) {
         await new Promise(r => setTimeout(r, 800));
-        if (currentIndex === questions.length - 1) {
-          await speakText("Alright, this one might be a bit more challenging.");
+        if (isInterviewFinished) {
+            // It won't reach here usually, but just in case
+        } else if (currentIndex > 0 && currentIndex === dynamicQuestions.length - 1 && !isInterviewFinished) {
+          await speakText("Alright, let's proceed.");
         }
         await speakText(currentQuestion.question);
         if (isMicOn) startMic();
@@ -283,6 +287,14 @@ function Step2Interview({ interviewData, onFinish }) {
       }, { withCredentials: true });
       setFeedback(result.data.feedback);
       speakText(result.data.feedback);
+      
+      if (result.data.nextQuestion) {
+          setDynamicQuestions(prev => [...prev, result.data.nextQuestion]);
+      }
+      if (result.data.isFinished) {
+          setIsInterviewFinished(true);
+      }
+      
       setIsSubmitting(false);
     } catch (error) {
       console.log(error);
@@ -293,7 +305,7 @@ function Step2Interview({ interviewData, onFinish }) {
   const handleNext = async () => {
     setAnswer("");
     setFeedback("");
-    if (currentIndex + 1 >= questions.length) {
+    if (isInterviewFinished || currentIndex + 1 >= dynamicQuestions.length) {
       finishInterview();
       return;
     }
@@ -462,7 +474,9 @@ function Step2Interview({ interviewData, onFinish }) {
                 <span className='text-xs text-gray-400 block mt-1 uppercase tracking-wider'>Current</span>
               </div>
               <div>
-                <span className='text-2xl font-bold text-gray-400'>{questions.length}</span>
+                <span className='text-2xl font-bold text-gray-400'>
+                  {isInterviewFinished ? dynamicQuestions.length : "∞"}
+                </span>
                 <span className='text-xs text-gray-400 block mt-1 uppercase tracking-wider'>Total</span>
               </div>
             </div>
@@ -484,7 +498,7 @@ function Step2Interview({ interviewData, onFinish }) {
             >
               <div className='flex justify-between items-center mb-4'>
                 <div className='inline-block px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold'>
-                  Question {currentIndex + 1} of {questions.length}
+                  Question {currentIndex + 1} {isInterviewFinished ? `of ${dynamicQuestions.length}` : ''}
                 </div>
 
                 <div className='flex gap-2'>

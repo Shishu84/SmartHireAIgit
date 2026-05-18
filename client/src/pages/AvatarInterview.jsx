@@ -31,6 +31,8 @@ export default function AvatarInterview() {
   const [resumeFile, setResumeFile] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [dynamicQuestions, setDynamicQuestions] = useState([])
+  const [qaHistory, setQaHistory] = useState([])
+  const [isSaving, setIsSaving] = useState(false)
 
   const socketRef = useRef(null)
   const videoRef = useRef(null)
@@ -41,21 +43,10 @@ export default function AvatarInterview() {
   const streamRef = useRef(null)
   const rafRef = useRef(null)
   
-  const sampleQuestions = {
-    en: [
-      'Tell me about yourself and your background.',
-      'What is your greatest professional strength?',
-      'Describe a challenging project you worked on.',
-      'How do you handle tight deadlines?',
-      'Where do you see yourself in 5 years?',
-    ],
-    hi: [
-      'अपने बारे में और अपनी पृष्ठभूमि के बारे में बताइए।',
-      'आपकी सबसे बड़ी पेशेवर ताकत क्या है?',
-      'किसी चुनौतीपूर्ण प्रोजेक्ट का वर्णन करें जिस पर आपने काम किया।',
-      'आप कड़ी समयसीमाओं को कैसे संभालते हैं?',
-      'आप खुद को 5 साल में कहाँ देखते हैं?',
-    ],
+  // Default opening question (used only if no resume is uploaded)
+  const defaultFirstQuestion = {
+    en: 'Tell me about yourself and your background.',
+    hi: 'अपने बारे में और अपनी पृष्ठभूमि के बारे में बताइए।',
   }
   
   // ── Socket.IO setup ──────────────────────────────────────────────────────────
@@ -68,16 +59,34 @@ export default function AvatarInterview() {
     socket.on('avatar:reply', ({ text }) => {
       setAvatarReply(text)
       setMessages(prev => [...prev, { from: 'ai', text }])
+      
+      setQaHistory(prev => {
+          const history = [...prev];
+          if (history.length > 0) {
+              history[history.length - 1].feedback = text;
+          }
+          return history;
+      });
+
       speakText(text)
     })
 
     socket.on('avatar:speaking_start', () => setIsAISpeaking(true))
     socket.on('avatar:speaking_end', () => setIsAISpeaking(false))
 
+    // Adaptive: next question from server
     socket.on('avatar:question_ready', ({ text }) => {
+      setAvatarReply('')
+      setTranscript('')
       setCurrentQ(text)
       setSubtitle(text)
+      setQIndex(prev => prev + 1)
       speakText(text)
+    })
+
+    // Dynamic completion: server signals when interview is done
+    socket.on('avatar:interview_complete', () => {
+      finishAvatarInterview()
     })
 
     return () => socket.disconnect()
@@ -162,7 +171,7 @@ export default function AvatarInterview() {
   }
 
   const getQuestionsList = () => {
-    return dynamicQuestions.length > 0 ? dynamicQuestions : sampleQuestions[language]
+    return dynamicQuestions.length > 0 ? dynamicQuestions : [defaultFirstQuestion[language]]
   }
 
   const handleResumeUpload = async (e) => {
@@ -177,11 +186,12 @@ export default function AvatarInterview() {
     try {
       const res = await axios.post(`${ServerUrl}/api/avatar/upload-resume`, formData)
       if (res.data.success) {
-        const { role: fetchedRole, experience: fetchedExp, questions } = res.data.data
+        const { role: fetchedRole, experience: fetchedExp, firstQuestion } = res.data.data
         if (fetchedRole) setRole(fetchedRole)
         if (fetchedExp) setExperience(fetchedExp)
-        if (questions && questions.length > 0) {
-          setDynamicQuestions(questions)
+        // Store the AI-generated opening question from resume
+        if (firstQuestion) {
+          setDynamicQuestions([firstQuestion])
         }
       }
     } catch (error) {
@@ -198,20 +208,33 @@ export default function AvatarInterview() {
     setPhase('active')
     setQIndex(0)
     setTimeout(() => {
-      const qs = getQuestionsList()
-      const q = qs[0]
-      setCurrentQ(q)
+      // Use AI-generated first question from resume, or language-appropriate default
+      const firstQ = dynamicQuestions.length > 0 ? dynamicQuestions[0] : defaultFirstQuestion[language]
+      setCurrentQ(firstQ)
       speakText(language === 'en'
         ? `Hello! Welcome to your ${role} interview. Let's begin.`
         : `नमस्ते! आपके ${role} साक्षात्कार में आपका स्वागत है। शुरू करते हैं।`
       )
-      setTimeout(() => speakText(q), 3500)
+      setTimeout(() => speakText(firstQ), 3500)
     }, 500)
   }
 
   const submitAnswer = () => {
     if (!transcript.trim() || !socketRef.current) return
     setMessages(prev => [...prev, { from: 'user', text: transcript }])
+    
+    // Store answer in structured history
+    setQaHistory(prev => {
+        const history = [...prev];
+        const existing = history.find(item => item.question === currentQ);
+        if (existing) {
+            existing.answer = transcript;
+        } else {
+            history.push({ question: currentQ, answer: transcript, feedback: '' });
+        }
+        return history;
+    });
+
     socketRef.current.emit('candidate:answer', {
       transcript,
       language,
@@ -225,16 +248,31 @@ export default function AvatarInterview() {
     setIsListening(false)
   }
 
+  const finishAvatarInterview = async () => {
+    setIsSaving(true);
+    try {
+      await axios.post(`${ServerUrl}/api/avatar/save-interview`, {
+        qaHistory,
+        role,
+        experience,
+        language
+      }, { withCredentials: true });
+    } catch (error) {
+      console.error("Failed to save interview:", error);
+      alert(language === 'en' ? "Failed to save interview results." : "साक्षात्कार परिणाम सहेजने में विफल।");
+    } finally {
+      setIsSaving(false);
+      setPhase('done');
+    }
+  };
+
+  // nextQuestion is now driven purely by the server via avatar:question_ready
+  // Kept as a manual fallback only when server doesn't emit a next question
   const nextQuestion = () => {
-    const qs = getQuestionsList()
-    const next = qIndex + 1
-    if (next >= qs.length) { setPhase('done'); return }
-    setQIndex(next)
     setAvatarReply('')
     setTranscript('')
-    const q = qs[next]
-    setCurrentQ(q)
-    speakText(q)
+    // Manual finish if AI doesn't auto-advance
+    finishAvatarInterview()
   }
 
   const toggleLanguage = () => {
@@ -507,11 +545,18 @@ export default function AvatarInterview() {
               </p>
               <p className="text-white/80 text-sm leading-relaxed mb-4">{avatarReply}</p>
               <button onClick={nextQuestion}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-white hover:opacity-90 transition flex items-center justify-center gap-2">
-                {qIndex + 1 >= sampleQuestions[language].length
-                  ? (language === 'en' ? 'Finish Interview' : 'साक्षात्कार समाप्त करें')
-                  : (language === 'en' ? 'Next Question' : 'अगला प्रश्न')
-                } <BsArrowRight />
+                disabled={isSaving}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                {isSaving ? (
+                  <><FaSpinner className="animate-spin" /> {language === 'en' ? 'Saving...' : 'सहेज रहा है...'}</>
+                ) : (
+                  <>
+                    {qIndex + 1 >= sampleQuestions[language].length
+                      ? (language === 'en' ? 'Finish Interview' : 'साक्षात्कार समाप्त करें')
+                      : (language === 'en' ? 'Next Question' : 'अगला प्रश्न')
+                    } <BsArrowRight />
+                  </>
+                )}
               </button>
             </motion.div>
           )}

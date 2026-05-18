@@ -5,8 +5,9 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import mammoth from "mammoth";
 import WordExtractor from "word-extractor";
 import Tesseract from "tesseract.js";
-import Jimp from "jimp";
+import { Jimp } from "jimp";
 import { askAi } from "../services/openRouter.service.js"
+import Interview from "../models/interview.model.js"
 
 // ─── Google Translate (free/unofficial endpoint) ─────────────────────────────
 async function translateText(text, targetLang) {
@@ -87,6 +88,130 @@ Your goal:
 }
 
 /**
+ * POST /api/avatar/save-interview
+ * Body: { qaHistory, role, experience, language }
+ */
+export const saveAvatarInterview = async (req, res) => {
+  try {
+    const { qaHistory, role, experience, language } = req.body
+    if (!qaHistory || qaHistory.length === 0) {
+      return res.status(400).json({ message: "Interview data is empty" })
+    }
+
+    const chatTranscript = qaHistory.map((q, i) => `Q${i+1}: ${q.question}\nAnswer: ${q.answer || "No answer submitted."}\nAI Quick Reply: ${q.feedback}`).join("\n\n");
+
+    const aiMessages = [
+      {
+        role: "system",
+        content: `You are an expert technical interviewer and career coach. Evaluate the candidate's interview performance based on their transcript.
+CRITICAL INSTRUCTIONS:
+1. Analyze each answer independently.
+2. Generate unique and realistic scores based strictly on answer quality.
+3. Calculate confidence, communication, and correctness dynamically for each individual answer.
+4. Avoid repeated or static values; vary the scores logically depending on how well each question was answered (0-10).
+5. If an answer is missing or very poor, give low scores (0-4).
+
+Return ONLY a valid raw JSON object exactly matching this structure (no markdown wrappers, no extra text):
+{
+  "questions": [
+    {
+      "score": number,
+      "confidence": number,
+      "communication": number,
+      "correctness": number
+    }
+  ],
+  "aiFeedback": {
+    "overallFeedback": "2-3 sentences summarizing general performance",
+    "technicalFeedback": "2 sentences focusing on technical precision",
+    "behavioralFeedback": "2 sentences focusing on communication clarity and confidence",
+    "strengths": ["...", "...", "..."],
+    "improvements": ["...", "...", "..."],
+    "suggestions": ["...", "...", "..."]
+  }
+}
+The 'questions' array must have exactly ${qaHistory.length} items, one for each question in order. Each score must be an integer from 0 to 10.`
+      },
+      {
+        role: "user",
+        content: `Here is the interview transcript:\n\n${chatTranscript}`
+      }
+    ];
+
+    let parsedAi = null;
+    try {
+      const aiResponse = await askAi(aiMessages);
+      let cleaned = (aiResponse || "").trim();
+      const blockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (blockMatch) cleaned = blockMatch[1];
+      const objMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (objMatch) cleaned = objMatch[0];
+      cleaned = cleaned.replace(/,\s*([\}\]])/g, '$1');
+      parsedAi = JSON.parse(cleaned);
+    } catch (err) {
+      console.error("Failed to parse AI evaluation:", err);
+    }
+
+    let totalScore = 0;
+    const questions = qaHistory.map((qa, index) => {
+        const qEval = parsedAi?.questions?.[index] || { score: 5, confidence: 5, communication: 5, correctness: 5 };
+        totalScore += qEval.score || 0;
+        return {
+            question: qa.question,
+            answer: qa.answer,
+            feedback: qa.feedback || "",
+            score: qEval.score || 0,
+            confidence: qEval.confidence || 0,
+            communication: qEval.communication || 0,
+            correctness: qEval.correctness || 0,
+            difficulty: "medium",
+            timeLimit: 60
+        };
+    });
+
+    const finalScore = questions.length > 0 ? (totalScore / questions.length) : 0;
+
+    let aiFeedback = {
+        overallFeedback: "The candidate completed the interview.",
+        technicalFeedback: "Technical skills were demonstrated.",
+        behavioralFeedback: "Professional conduct was observed.",
+        strengths: ["Completed the interview"],
+        improvements: ["Provide more detailed answers"],
+        suggestions: []
+    };
+
+    if (parsedAi && parsedAi.aiFeedback) {
+        aiFeedback = {
+            overallFeedback: parsedAi.aiFeedback.overallFeedback || aiFeedback.overallFeedback,
+            technicalFeedback: parsedAi.aiFeedback.technicalFeedback || aiFeedback.technicalFeedback,
+            behavioralFeedback: parsedAi.aiFeedback.behavioralFeedback || aiFeedback.behavioralFeedback,
+            strengths: Array.isArray(parsedAi.aiFeedback.strengths) ? parsedAi.aiFeedback.strengths : [],
+            improvements: Array.isArray(parsedAi.aiFeedback.improvements) ? parsedAi.aiFeedback.improvements : [],
+            suggestions: Array.isArray(parsedAi.aiFeedback.suggestions) ? parsedAi.aiFeedback.suggestions.map(s => ({text: s, completed: false})) : []
+        };
+    }
+
+    const interview = await Interview.create({
+        userId: req.userId,
+        role: role || "Candidate",
+        experience: experience || "Not Specified",
+        mode: "Technical",
+        status: "completed",
+        questions: questions,
+        finalScore: Number(finalScore.toFixed(1)),
+        aiRecommendation: finalScore >= 7 ? "Selected" : "Improvement Needed",
+        aiFeedback: aiFeedback
+    });
+
+    return res.status(200).json({ message: "Interview saved successfully", interviewId: interview._id })
+
+  } catch (error) {
+    console.error("Save Avatar Interview Error:", error)
+    return res.status(500).json({ message: "Failed to save avatar interview" })
+  }
+}
+
+/**
  * POST /api/avatar/upload-resume
  * Form-data: { resume: File }
  * Parses the resume and generates 5 personalized interview questions for the AI avatar.
@@ -111,14 +236,63 @@ export const processAvatarResume = async (req, res) => {
           const textContent = await page.getTextContent()
           resumeText += textContent.items.map(item => item.str).join(" ") + "\n"
         }
-        await pdf.destroy()
         
         // Validation for scanned PDFs
         if (resumeText.trim().length < 50) {
-            console.warn("PDF appears to be scanned or image-based.");
-            if (filepath) fs.unlink(filepath, () => {})
-            return res.status(400).json({ message: "Scanned PDF detected without a text layer. Please upload a standard text PDF, DOCX, or Image (JPG/PNG)." })
+            console.log("PDF text layer is too small, falling back to embedded image OCR...");
+            let ocrText = "";
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const ops = await page.getOperatorList();
+                for (let i = 0; i < ops.fnArray.length; i++) {
+                    if (ops.fnArray[i] === pdfjsLib.OPS.paintImageXObject) {
+                        const imgKey = ops.argsArray[i][0];
+                        const imgText = await new Promise((resolve) => {
+                            page.objs.get(imgKey, async (img) => {
+                                try {
+                                    if (!img) return resolve("");
+                                    const pixels = img.width * img.height;
+                                    const rgbaBuffer = Buffer.alloc(pixels * 4);
+                                    const imgData = img.data;
+
+                                    if (imgData.length === pixels * 3) {
+                                        for (let p = 0, j = 0; p < imgData.length; p += 3, j += 4) {
+                                            rgbaBuffer[j] = imgData[p];
+                                            rgbaBuffer[j + 1] = imgData[p + 1];
+                                            rgbaBuffer[j + 2] = imgData[p + 2];
+                                            rgbaBuffer[j + 3] = 255;
+                                        }
+                                    } else if (imgData.length === pixels * 4) {
+                                        for (let p = 0; p < imgData.length; p++) rgbaBuffer[p] = imgData[p];
+                                    } else {
+                                        for (let p = 0, j = 0; p < imgData.length; p++, j += 4) {
+                                            rgbaBuffer[j] = imgData[p];
+                                            rgbaBuffer[j + 1] = imgData[p];
+                                            rgbaBuffer[j + 2] = imgData[p];
+                                            rgbaBuffer[j + 3] = 255;
+                                        }
+                                    }
+
+                                    const jImage = new Jimp({ width: img.width, height: img.height, data: rgbaBuffer });
+                                    const tempPath = filepath + `_page${pageNum}_img.png`;
+                                    
+                                    await jImage.greyscale().contrast(1).normalize().write(tempPath);
+                                    const { data: { text } } = await Tesseract.recognize(tempPath, 'eng', { logger: () => {} });
+                                    fs.unlink(tempPath, () => {});
+                                    resolve(text);
+                                } catch (err) {
+                                    console.error("PDF Image OCR error:", err);
+                                    resolve("");
+                                }
+                            });
+                        });
+                        ocrText += imgText + "\n";
+                    }
+                }
+            }
+            resumeText = ocrText.replace(/\s+/g, " ").trim();
         }
+        await pdf.destroy()
       } catch (err) {
         console.error("PDF Parsing Error:", err)
       }
@@ -149,7 +323,7 @@ export const processAvatarResume = async (req, res) => {
             .greyscale()
             .contrast(1)
             .normalize()
-            .writeAsync(processedPath);
+            .write(processedPath);
 
         const { data: { text } } = await Tesseract.recognize(processedPath, 'eng', { logger: () => {} });
         resumeText = (text || "").replace(/\s+/g, " ").trim();
@@ -172,27 +346,22 @@ export const processAvatarResume = async (req, res) => {
     // Clean up file
     fs.unlink(filepath, () => {})
 
-    // Generate personalized context & questions
+    // Generate personalized context & first question only
     const messages = [
       {
         role: "system",
-        content: `You are an expert AI Technical Recruiter. Based on the candidate's extracted resume text, you must output a structured JSON response EXACTLY matching this schema, without markdown formatting or other text:
+        content: `You are an expert AI Technical Recruiter. Analyze the candidate's resume and output a structured JSON response EXACTLY matching this schema (no markdown, no extra text):
 {
   "role": "Inferred primary job role (e.g. Frontend Developer)",
   "experience": "Inferred experience level (e.g. 3 years, Fresher)",
   "skills": ["Skill1", "Skill2", "Skill3"],
-  "questions": [
-    "Question 1 (Technical based on skills)",
-    "Question 2 (Project based on their projects)",
-    "Question 3 (Experience oriented)",
-    "Question 4 (Domain specific problem solving)",
-    "Question 5 (Behavioral/Leadership)"
-  ]
+  "projects": ["Project name or brief description"],
+  "firstQuestion": "A single, natural, conversational opening interview question based on their role and primary skill (15-25 words)"
 }`
       },
       {
         role: "user",
-        content: `Resume Text:\n${resumeText.substring(0, 4000)}` // Limit to ~4000 chars to save tokens
+        content: `Resume Text:\n${resumeText.substring(0, 4000)}`
       }
     ]
 
@@ -216,6 +385,12 @@ export function registerAvatarSocket(namespace) {
   namespace.on("connection", (socket) => {
     console.log(`[Avatar Socket] Client connected: ${socket.id}`)
 
+    // Per-socket interview state: track transcript history for adaptive follow-ups
+    const sessionState = {
+      questionCount: 0,
+      transcript: [] // Array of { question, answer }
+    };
+
     // Client sends a transcribed answer and language preference
     socket.on("candidate:answer", async ({ transcript, language, questionContext, role, experience }) => {
       if (!transcript?.trim()) return
@@ -230,34 +405,89 @@ export function registerAvatarSocket(namespace) {
           socket.emit("avatar:translated_transcript", { english: processedTranscript })
         }
 
-        // Step 2: Generate AI feedback
+        // Store in session history
+        sessionState.questionCount += 1;
+        sessionState.transcript.push({ question: questionContext, answer: processedTranscript });
+
+        const isLastQuestion = sessionState.questionCount >= 8;
+        const minReached = sessionState.questionCount >= 4;
+
+        // Build conversation transcript for AI context
+        const conversationHistory = sessionState.transcript
+          .map((t, i) => `Q${i+1}: ${t.question}\nA${i+1}: ${t.answer}`)
+          .join("\n\n");
+
+        // Step 2: Generate AI feedback AND decide on next question
         const messages = [
           {
             role: "system",
-            content: `You are a professional AI interviewer conducting a ${role || "Software Engineer"} interview for a candidate with ${experience || "2 years"} experience.
-Give brief, constructive feedback on the candidate's answer in 1-2 sentences.
+            content: `You are a professional AI interviewer conducting a ${role || "Software Engineer"} interview for a candidate with ${experience || "some"} experience.
+
+You have two tasks:
+1. Give brief, constructive feedback on the candidate's latest answer in 1-2 sentences. Be warm, professional, and specific.
+2. Decide what happens next.
+
+${isLastQuestion ? "- This is the FINAL question. Set isFinished to true." : minReached ? "- You have asked enough questions to evaluate the candidate. You MAY set isFinished to true if you have gathered sufficient signals, or continue with a logical follow-up question." : "- You MUST generate a nextQuestion."}
+
+If generating a nextQuestion:
+- It must be a natural follow-up based on the candidate's answer, OR a new topic relevant to the role.
+- If the candidate mentioned a specific technology, framework, or challenge, ask a drill-down question on it.
+- Keep the question between 15-25 words.
+- Vary difficulty progressively.
+
 Always respond in ${langLabel}.
-Be warm, professional, and specific. Do not repeat the question.`
+
+Return ONLY valid JSON:
+{
+  "feedback": "1-2 sentence feedback in ${langLabel}",
+  "isFinished": boolean,
+  "nextQuestion": "The next question text (omit if isFinished is true)"
+}`
           },
           {
             role: "user",
-            content: `Candidate answered: "${processedTranscript}"\nContext: ${questionContext || "General interview"}`
+            content: `Interview transcript so far:\n${conversationHistory}`
           }
         ]
 
-        // Stream the response back to client
         socket.emit("avatar:speaking_start")
-
         const aiReply = await askAi(messages)
 
-        // Step 3: Translate AI reply to Hindi if needed
-        let finalReply = aiReply
-        if (language === "hi") {
-          finalReply = await translateText(aiReply, "hi")
+        // Parse AI response
+        let parsed = { feedback: "Thank you for your answer.", isFinished: isLastQuestion, nextQuestion: null };
+        try {
+          let cleaned = (aiReply || "").trim();
+          const blockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (blockMatch) cleaned = blockMatch[1];
+          const objMatch = cleaned.match(/\{[\s\S]*\}/);
+          if (objMatch) cleaned = objMatch[0];
+          cleaned = cleaned.replace(/,\s*([\}\]])/g, '$1');
+          parsed = JSON.parse(cleaned);
+        } catch (e) {
+          console.error("[Avatar Socket] AI parse error:", e.message);
         }
 
-        socket.emit("avatar:reply", { text: finalReply, language })
+        // Step 3: Translate feedback to Hindi if needed
+        let finalFeedback = parsed.feedback || "Thank you for your answer.";
+        let finalNextQuestion = parsed.nextQuestion || null;
+
+        if (language === "hi") {
+          finalFeedback = await translateText(finalFeedback, "hi");
+          if (finalNextQuestion) {
+            finalNextQuestion = await translateText(finalNextQuestion, "hi");
+          }
+        }
+
+        // Emit feedback
+        socket.emit("avatar:reply", { text: finalFeedback, language })
         socket.emit("avatar:speaking_end")
+
+        // Emit next question or interview complete
+        if (parsed.isFinished || !parsed.nextQuestion) {
+          socket.emit("avatar:interview_complete", { message: "Interview complete" });
+        } else {
+          socket.emit("avatar:question_ready", { text: finalNextQuestion, language });
+        }
 
       } catch (err) {
         console.error("[Avatar Socket] Error:", err.message)

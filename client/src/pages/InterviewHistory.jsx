@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ServerUrl } from '../App';
 import { FaArrowLeft, FaHistory, FaFileAlt, FaUserEdit, FaChartBar, FaEye, FaDownload, FaTrash, FaCheck, FaTimes, FaSpinner, FaLock, FaExclamationTriangle } from 'react-icons/fa';
@@ -16,6 +16,8 @@ function InterviewHistory() {
     const [resumes, setResumes] = useState([]);
     const [activeTab, setActiveTab] = useState('history'); // history, resumes, profile, analytics
     const navigate = useNavigate();
+    const location = useLocation();
+    const [isLoading, setIsLoading] = useState(true);
 
     // Selection states for bulk delete
     const [selectedInterviews, setSelectedInterviews] = useState([]);
@@ -49,6 +51,7 @@ function InterviewHistory() {
     }, [userData]);
 
     const fetchData = async () => {
+        setIsLoading(true);
         try {
             const [intRes, resRes] = await Promise.all([
                 axios.get(ServerUrl + "/api/interview/get-interview", { withCredentials: true }),
@@ -58,12 +61,15 @@ function InterviewHistory() {
             setResumes(resRes.data);
         } catch (error) {
             console.log(error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    // Re-fetch every time the user navigates to this page
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [location.key]);
 
     const triggerNotification = (type, message) => {
         setNotification({ type, message });
@@ -402,7 +408,12 @@ function InterviewHistory() {
                                     </div>
                                 )}
 
-                                {interviews.length === 0 ? (
+                                {isLoading ? (
+                                    <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
+                                        <FaSpinner className="animate-spin text-3xl text-emerald-500" />
+                                        <p className="font-medium">Loading your interviews...</p>
+                                    </div>
+                                ) : interviews.length === 0 ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400">
                                         <p>No interviews found.</p>
                                         <button onClick={() => navigate("/avatar-interview")} className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition">Start your first interview!</button>
@@ -485,7 +496,12 @@ function InterviewHistory() {
                                     </div>
                                 )}
 
-                                {resumes.length === 0 ? (
+                                {isLoading ? (
+                                    <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
+                                        <FaSpinner className="animate-spin text-3xl text-emerald-500" />
+                                        <p className="font-medium">Loading your resume reports...</p>
+                                    </div>
+                                ) : resumes.length === 0 ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400">
                                         <p>No resumes uploaded yet.</p>
                                         <button onClick={() => navigate("/upload-resume")} className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition">Upload Resume Analysis</button>

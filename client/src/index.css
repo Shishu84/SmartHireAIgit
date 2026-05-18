@@ -1,5 +1,97 @@
 @import "tailwindcss";
 
+/* ─── Global Scroll Behavior ───────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* ─── Scrollbar Styling ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #059669; }
+
+/* ─── GPU-optimized Keyframes ───────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Utility Classes ───────────────────────────────────────────────────── */
+.animate-float     { animation: float 3s ease-in-out infinite; will-change: transform; }
+.animate-shimmer   { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 2s infinite; }
+.animate-pulse-ring { animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite; }
+.animate-slide-up  { animation: slide-up 0.5s ease-out forwards; }
+.animate-fade-in   { animation: fade-in 0.4s ease-out forwards; }
+.animate-gradient-x { background-size: 200% 200%; animation: gradient-x 4s ease infinite; }
+.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+/* ─── Glass Morphism ────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.glass-dark {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ─── Interactive Button Micro-interactions ─────────────────────────────── */
+.btn-press { transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.btn-press:active { transform: scale(0.96); }
+
+/* ─── Smooth Focus Ring ─────────────────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* ─── Card Hover Glow ───────────────────────────────────────────────────── */
+.card-glow { transition: box-shadow 0.3s ease, transform 0.3s ease; }
+.card-glow:hover { box-shadow: 0 20px 60px -12px rgba(16,185,129,0.15); transform: translateY(-3px); }
+
+/* ─── Nav Link Underline Slide ──────────────────────────────────────────── */
+.nav-link { position: relative; }
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 2px;
+  background: #10b981;
+  border-radius: 2px;
+  transition: width 0.25s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* ─── Prose ──────────────────────────────────────────────────────────────── */
 @layer components {
   .prose h1 { @apply text-2xl font-bold mb-4 mt-6; }
   .prose h2 { @apply text-xl font-bold mb-3 mt-5; }

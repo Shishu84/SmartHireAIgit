@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from "motion/react"
 import { BsRobot, BsCoin, BsList, BsX, BsSun, BsMoon, BsDisplay } from "react-icons/bs";
@@ -21,6 +21,13 @@ function Navbar() {
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const [showAuth, setShowAuth] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -55,19 +62,21 @@ function Navbar() {
                 initial={{ opacity: 0, y: -40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className='w-full max-w-6xl bg-white dark:bg-gray-900 rounded-[24px] shadow-sm border border-gray-200 dark:border-gray-800 px-5 py-4 flex justify-between items-center relative'>
+        className={`w-full max-w-6xl rounded-[24px] px-5 py-4 flex justify-between items-center relative transition-all duration-300
+                    ${scrolled
+                        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-gray-200/60 dark:border-gray-800/60'
+                        : 'bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800'
+                    }`}>
 
-                {/* Logo */}
-                <div onClick={() => navigate("/")} className='flex items-center gap-3 cursor-pointer text-gray-900 dark:text-white'>
-                    <div className='bg-black text-white p-2 rounded-lg'>
+                <div onClick={() => navigate("/")} className='flex items-center gap-3 cursor-pointer text-gray-900 dark:text-white group'>
+                    <div className='bg-black text-white p-2 rounded-lg transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3'>
                         <BsRobot size={18} />
                     </div>
-                    <h1 className='font-semibold text-lg'>SmartHire.AI</h1>
+                    <h1 className='font-semibold text-lg tracking-tight'>SmartHire.AI</h1>
                 </div>
 
-                {/* Desktop Nav */}
                 <div className='hidden md:flex items-center gap-6 relative'>
-                    <button onClick={() => navigate("/")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Home</button>
+                    <button onClick={() => navigate("/")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Home</button>
                     
                     <div className='relative group'>
                         <button className='flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition py-2 text-sm'>
@@ -94,8 +103,8 @@ function Navbar() {
                         </div>
                     </div>
 
-                    <button onClick={() => navigate("/about")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>About</button>
-                    <button onClick={() => navigate("/contact")} className='text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
+                    <button onClick={() => navigate("/about")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>About</button>
+                    <button onClick={() => navigate("/contact")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
 
                     {/* Theme Toggle */}
                     <div className='relative'>
@@ -194,9 +203,16 @@ function Navbar() {
                         transition={{ duration: 0.2 }}
                         className='absolute top-[80px] left-4 right-4 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-4 z-50 flex flex-col gap-2'>
                         {navLinks.map((link, i) => (
-                            <button key={i} onClick={link.action} className='w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium transition'>
+                            <motion.button
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.18, delay: i * 0.05 }}
+                                onClick={link.action}
+                                className='w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium transition'
+                            >
                                 {link.label}
-                            </button>
+                            </motion.button>
                         ))}
                         <div className='border-t border-gray-100 dark:border-gray-800 mt-1 pt-2'>
                             {userData ? (

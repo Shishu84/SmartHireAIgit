@@ -468,29 +468,41 @@ export const submitAnswer = async (req, res) => {
     const messages = [
       {
         role: "system",
-        content: `You are a professional human interviewer evaluating a candidate's answer and deciding how to proceed in a real interview.
+        content: `You are an AI-powered response evaluation engine acting as a professional technical interviewer.
+Your task is to generate dynamic, contextual feedback for the candidate's answer in real time.
 
-Evaluate naturally and fairly. Score the answer (0 to 10) on Confidence, Communication, and Correctness.
+Evaluate the candidate's answer strictly based on four metrics (score 0 to 10 for each):
+1. Relevance to question
+2. Technical correctness
+3. Completeness of answer
+4. Communication clarity
+
+Generate dynamic feedback including:
+- "feedbackStatus": "Correct" OR "Partially correct" OR "Incorrect"
+- "explanation": "Explanation of why the answer received this status."
+- "improvement": "Specific improvement suggestions for the candidate."
 
 Based on the transcript, generate the NEXT question (unless you decide to finish the interview).
-- The next question should logically follow up on the candidate's answer (e.g., if they mention a technology, ask about it) or move to a new topic relevant to their role (${interview.role}).
-- If they gave a strong answer, increase the difficulty. If weak, ask for clarification or a simpler question.
+- The next question should logically follow up on the candidate's answer or move to a new topic.
 - Maximum questions allowed is 8. You are currently evaluating question ${questionIndex + 1}.
 ${minQuestionsReached ? "- You have reached the minimum required questions. You may choose to finish the interview by setting isFinished to true and omitting nextQuestion if you have enough signals." : "- You MUST generate a nextQuestion."}
 ${isLastQuestion ? "- This is the final question. You MUST set isFinished to true and omit nextQuestion." : ""}
 
-Return ONLY valid JSON in this format:
+Return ONLY valid JSON in this exact format:
 {
-  "confidence": number,
-  "communication": number,
+  "relevance": number,
   "correctness": number,
+  "completeness": number,
+  "clarity": number,
   "finalScore": number,
-  "feedback": "short human feedback (10-15 words)",
+  "feedbackStatus": "Correct / Partially correct / Incorrect",
+  "explanation": "...",
+  "improvement": "...",
   "isFinished": boolean,
   "nextQuestion": {
     "question": "The next interview question text (15-25 words)",
     "difficulty": "easy, medium, or hard",
-    "timeLimit": 60, 90, or 120 (number)
+    "timeLimit": 60, 90, or 120
   }
 }`
       },
@@ -517,22 +529,31 @@ Return ONLY valid JSON in this format:
     } catch (parseError) {
       console.error("AI answer evaluation parse error:", parseError.message);
       parsed = {
-        confidence: 5,
-        communication: 5,
+        relevance: 5,
         correctness: 5,
+        completeness: 5,
+        clarity: 5,
         finalScore: 5,
-        feedback: "Response recorded.",
+        feedbackStatus: "Unknown",
+        explanation: "Response recorded.",
+        improvement: "No suggestions available.",
         isFinished: isLastQuestion || minQuestionsReached,
         nextQuestion: (isLastQuestion || minQuestionsReached) ? null : { question: "Can you elaborate on your experience?", difficulty: "medium", timeLimit: 60 }
       };
     }
 
     question.answer = answer;
-    question.confidence = parsed.confidence || 0;
-    question.communication = parsed.communication || 0;
+    // Map new metrics to the existing schema parameters (confidence mapped to clarity)
+    question.confidence = parsed.clarity || 0;
+    question.communication = parsed.clarity || 0; 
     question.correctness = parsed.correctness || 0;
     question.score = parsed.finalScore || 0;
-    question.feedback = parsed.feedback || "Response recorded.";
+    
+    // Construct dynamic contextual feedback string
+    const status = parsed.feedbackStatus || "Evaluated";
+    const explanation = parsed.explanation || "Response recorded.";
+    const improvement = parsed.improvement || "";
+    question.feedback = `[${status}] ${explanation} ${improvement}`.trim();
 
     let nextQuestion = null;
     let isFinished = parsed.isFinished === true || isLastQuestion;
@@ -555,7 +576,11 @@ Return ONLY valid JSON in this format:
         nextQuestion: nextQuestion,
         isFinished: isFinished
     });
-}
+  } catch (error) {
+    console.error("Error in submitAnswer:", error);
+    return res.status(500).json({ message: `failed to submit answer: ${error.message}` });
+  }
+};
 
 
 export const finishInterview = async (req,res) => {

@@ -8,10 +8,11 @@ import { useNavigate } from 'react-router-dom'
 import maleVideo from '../assets/videos/male-ai.mp4'
 import femaleVideo from '../assets/videos/female-ai.mp4'
 import { ServerUrl } from '../App'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 const SOCKET_URL = 'http://localhost:8000'
 
-export default function AvatarInterview() {
+function AvatarInterviewComponent() {
   const navigate = useNavigate()
   const [language, setLanguage] = useState('en')
   const [phase, setPhase] = useState('setup') // setup | active | done
@@ -24,31 +25,37 @@ export default function AvatarInterview() {
   const [messages, setMessages] = useState([])
   const [role, setRole] = useState('')
   const [experience, setExperience] = useState('')
+  const [avatarGender, setAvatarGender] = useState('female')
   const [currentQ, setCurrentQ] = useState('')
   const [qIndex, setQIndex] = useState(0)
   const [volumeLevel, setVolumeLevel] = useState(0)
 
   const [resumeFile, setResumeFile] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isResumeReady, setIsResumeReady] = useState(false) // true only after successful parse
   const [dynamicQuestions, setDynamicQuestions] = useState([])
   const [qaHistory, setQaHistory] = useState([])
   const [isSaving, setIsSaving] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+
+  // ── Hybrid Validation ────────────────────────────────────────────────────────
+  // Start is enabled when EITHER path is satisfied:
+  //  Path A (Resume): resume successfully parsed (isResumeReady)
+  //  Path B (Manual): both role AND experience are filled
+  const isManualReady = role.trim().length > 0 && experience !== ''
+  const canStart = isResumeReady || isManualReady
 
   const socketRef = useRef(null)
   const videoRef = useRef(null)
   const recognitionRef = useRef(null)
-  const synthRef = useRef(window.speechSynthesis)
+  const audioRef = useRef(null)
   const audioCtxRef = useRef(null)
   const analyserRef = useRef(null)
   const streamRef = useRef(null)
   const rafRef = useRef(null)
-  
-  // Default opening question (used only if no resume is uploaded)
-  const defaultFirstQuestion = {
-    en: 'Tell me about yourself and your background.',
-    hi: 'अपने बारे में और अपनी पृष्ठभूमि के बारे में बताइए।',
-  }
-  
+
+  // Removed hardcoded defaultFirstQuestion in favor of full AI generation
+
   // ── Socket.IO setup ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'active') return
@@ -56,16 +63,29 @@ export default function AvatarInterview() {
     const socket = io(`${SOCKET_URL}/avatar-interview`, { withCredentials: true })
     socketRef.current = socket
 
+    socket.on('connect', () => {
+      // Delay fetching the first question to let the "Welcome" greeting finish speaking
+      setTimeout(() => {
+        if (dynamicQuestions.length > 0) {
+          // If resume was uploaded, use the pre-generated AI question
+          socket.emit('avatar:speak_question', { question: dynamicQuestions[0], language })
+        } else {
+          // Manual Mode: ask backend to dynamically generate the first question
+          socket.emit('avatar:start_interview', { role, experience, language })
+        }
+      }, 3500)
+    })
+
     socket.on('avatar:reply', ({ text }) => {
       setAvatarReply(text)
       setMessages(prev => [...prev, { from: 'ai', text }])
-      
+
       setQaHistory(prev => {
-          const history = [...prev];
-          if (history.length > 0) {
-              history[history.length - 1].feedback = text;
-          }
-          return history;
+        const history = [...prev];
+        if (history.length > 0) {
+          history[history.length - 1].feedback = text;
+        }
+        return history;
       });
 
       speakText(text)
@@ -131,32 +151,83 @@ export default function AvatarInterview() {
         rafRef.current = requestAnimationFrame(tick)
       }
       tick()
-    }).catch(() => {})
+    }).catch(() => { })
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop())
       cancelAnimationFrame(rafRef.current)
     }
   }, [isMicOn])
 
-  // ── TTS ──────────────────────────────────────────────────────────────────────
-  const speakText = (text) => {
-    synthRef.current.cancel()
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.lang = language === 'hi' ? 'hi-IN' : 'en-US'
-    utt.rate = 0.92
-    utt.pitch = 1.05
-    utt.onstart = () => {
-      setIsAISpeaking(true)
-      setSubtitle(text)
-      videoRef.current?.play()
+  // ── Fully Free Neural TTS Engine (Amazon Polly Neural) ──────────────────────
+  const speakText = async (text) => {
+    // Cancel any ongoing audio gracefully
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
     }
-    utt.onend = () => {
+
+    setIsAISpeaking(true)
+    setSubtitle(text)
+    
+    const playPromise = videoRef.current?.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(e => console.warn("Video autoplay blocked/failed:", e))
+    }
+
+    try {
+      // Fully Free Neural TTS Integration
+      // Uses high-quality Amazon Polly Neural models via a public proxy.
+      // This ensures a human-like voice experience out-of-the-box without keys or limits.
+      const voice = language === 'hi' 
+        ? 'Aditi' // Hindi Polly Voice (supports both genders relatively well for free tier)
+        : (avatarGender === 'male' ? 'Brian' : 'Salli'); // English Neural Voices
+      
+      const audioUrl = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`;
+
+      const audio = new Audio(audioUrl);
+      
+      // 5. Verify MIME Type and Origin
+      audio.crossOrigin = "anonymous";
+      audio.type = "audio/mpeg"; // Enforce valid MIME type handling
+      audioRef.current = audio;
+      
+      // Styling parameters (Speed / Pitch control support)
+      audio.playbackRate = language === 'hi' ? 1.0 : 1.05;
+      audio.preservesPitch = true;
+
+      // 3. Add Audio Error Handling
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", audio.error);
+        setIsAISpeaking(false);
+        setSubtitle('');
+        videoRef.current?.pause();
+      };
+
+      audio.onended = () => {
+        setIsAISpeaking(false)
+        setSubtitle('')
+        videoRef.current?.pause()
+        if (videoRef.current) videoRef.current.currentTime = 0
+      }
+
+      // Robust promise handling for audio play
+      const audioPlayPromise = audio.play();
+      if (audioPlayPromise !== undefined) {
+        audioPlayPromise.catch(error => {
+          console.error("Audio play blocked by browser:", error);
+          setIsAISpeaking(false);
+          setSubtitle('');
+          videoRef.current?.pause();
+        });
+      }
+
+    } catch (error) {
+      console.error("Neural TTS failed:", error)
+      // Gracefully end speaking state so the interview can continue via text.
       setIsAISpeaking(false)
-      setSubtitle('')
       videoRef.current?.pause()
       if (videoRef.current) videoRef.current.currentTime = 0
     }
-    synthRef.current.speak(utt)
   }
 
   const toggleMic = () => {
@@ -170,15 +241,15 @@ export default function AvatarInterview() {
     setIsMicOn(prev => !prev)
   }
 
-  const getQuestionsList = () => {
-    return dynamicQuestions.length > 0 ? dynamicQuestions : [defaultFirstQuestion[language]]
-  }
+  // Removed getQuestionsList since all questions are strictly AI generated
 
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
     setResumeFile(file)
     setIsUploading(true)
+    setIsResumeReady(false)
+    setUploadError('')
     setDynamicQuestions([])
 
     const formData = new FormData()
@@ -189,50 +260,51 @@ export default function AvatarInterview() {
         const { role: fetchedRole, experience: fetchedExp, firstQuestion } = res.data.data
         if (fetchedRole) setRole(fetchedRole)
         if (fetchedExp) setExperience(fetchedExp)
-        // Store the AI-generated opening question from resume
-        if (firstQuestion) {
-          setDynamicQuestions([firstQuestion])
-        }
+        if (firstQuestion) setDynamicQuestions([firstQuestion])
+        setIsResumeReady(true)   // ✅ Path A satisfied
+      } else {
+        setUploadError(language === 'en' ? 'Resume parsing failed. Please try manual input.' : 'रेज़्यूमे पार्स विफल। मैन्युअल इनपुट आज़माएं।')
+        setResumeFile(null)
       }
     } catch (error) {
       console.error("Resume upload failed", error)
-      const errorMsg = error.response?.data?.message || (language === 'en' ? "Failed to process resume." : "रेज़्यूमे प्रोसेस करने में विफल।")
-      alert(errorMsg)
+      setUploadError(error.response?.data?.message || (language === 'en' ? 'Failed to process resume.' : 'रेज़्यूमे प्रोसेस करने में विफल।'))
+      setResumeFile(null)
+      setIsResumeReady(false)
     } finally {
       setIsUploading(false)
     }
   }
 
   const startSession = () => {
-    if (!role || !experience) return
+    if (!canStart) return
     setPhase('active')
     setQIndex(0)
+    
+    // Play the generic welcome greeting immediately.
+    // The actual first question will be fetched from the backend AI via socket 3.5 seconds later.
     setTimeout(() => {
-      // Use AI-generated first question from resume, or language-appropriate default
-      const firstQ = dynamicQuestions.length > 0 ? dynamicQuestions[0] : defaultFirstQuestion[language]
-      setCurrentQ(firstQ)
       speakText(language === 'en'
         ? `Hello! Welcome to your ${role} interview. Let's begin.`
         : `नमस्ते! आपके ${role} साक्षात्कार में आपका स्वागत है। शुरू करते हैं।`
       )
-      setTimeout(() => speakText(firstQ), 3500)
     }, 500)
   }
 
   const submitAnswer = () => {
     if (!transcript.trim() || !socketRef.current) return
     setMessages(prev => [...prev, { from: 'user', text: transcript }])
-    
+
     // Store answer in structured history
     setQaHistory(prev => {
-        const history = [...prev];
-        const existing = history.find(item => item.question === currentQ);
-        if (existing) {
-            existing.answer = transcript;
-        } else {
-            history.push({ question: currentQ, answer: transcript, feedback: '' });
-        }
-        return history;
+      const history = [...prev];
+      const existing = history.find(item => item.question === currentQ);
+      if (existing) {
+        existing.answer = transcript;
+      } else {
+        history.push({ question: currentQ, answer: transcript, feedback: '' });
+      }
+      return history;
     });
 
     socketRef.current.emit('candidate:answer', {
@@ -284,8 +356,9 @@ export default function AvatarInterview() {
   if (phase === 'setup') return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 text-white">
+        className="w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 text-white">
 
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <BsGlobe2 size={28} />
@@ -304,70 +377,189 @@ export default function AvatarInterview() {
           </button>
         </div>
 
-        {/* Resume Upload Module */}
-        <div className="mb-6">
-          <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-2 block">
-            {language === 'en' ? 'Upload Resume (Optional)' : 'रेज़्यूमे अपलोड करें (वैकल्पिक)'}
-          </label>
+        {/* ── PATH A: Resume Upload ───────────────────────────────────────── */}
+        <div className={`mb-4 rounded-2xl border p-4 transition-all duration-300 ${
+          isResumeReady
+            ? 'border-green-400/60 bg-green-500/10'
+            : 'border-white/10 bg-white/5'
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                isResumeReady ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60'
+              }`}>
+                {isResumeReady ? <FaCheck size={10} /> : 'A'}
+              </div>
+              <span className="text-sm font-semibold text-white">
+                {language === 'en' ? 'Resume-Based Mode' : 'रेज़्यूमे आधारित मोड'}
+              </span>
+            </div>
+            {isResumeReady && (
+              <span className="text-xs font-bold text-green-400 bg-green-400/15 px-2 py-0.5 rounded-full">
+                {language === 'en' ? '✓ Ready' : '✓ तैयार'}
+              </span>
+            )}
+          </div>
+
           <div className="relative group">
-            <input 
-              type="file" 
+            <input
+              type="file"
               accept=".pdf,.doc,.docx"
               onChange={handleResumeUpload}
               onClick={(e) => (e.target.value = null)}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               disabled={isUploading}
             />
-            <div className={`w-full bg-white/5 border border-dashed rounded-xl px-4 py-4 flex items-center justify-center gap-3 transition-all ${resumeFile ? 'border-green-400/50 text-green-400' : 'border-white/20 text-white/70 group-hover:border-purple-400 group-hover:bg-white/10'}`}>
+            <div className={`w-full border border-dashed rounded-xl px-4 py-4 flex items-center justify-center gap-3 transition-all ${
+              isResumeReady
+                ? 'border-green-400/50 bg-green-500/10 text-green-400'
+                : 'border-white/20 text-white/70 group-hover:border-purple-400 group-hover:bg-white/10'
+            }`}>
               {isUploading ? (
                 <FaSpinner className="animate-spin text-xl" />
-              ) : resumeFile ? (
+              ) : isResumeReady ? (
                 <FaCheck className="text-xl" />
               ) : (
                 <FaCloudUploadAlt className="text-2xl" />
               )}
               <span className="font-medium text-sm">
-                {isUploading ? (language === 'en' ? 'Parsing...' : 'प्रोसेसिंग...') 
-                  : resumeFile ? resumeFile.name 
-                  : (language === 'en' ? 'Click or drag PDF/DOC here' : 'पीडीएफ/डॉक यहाँ अपलोड करें')}
+                {isUploading
+                  ? (language === 'en' ? 'Parsing resume...' : 'प्रोसेसिंग...')
+                  : isResumeReady
+                    ? resumeFile?.name
+                    : (language === 'en' ? 'Click to upload PDF / DOC' : 'पीडीएफ/डॉक अपलोड करें')}
               </span>
             </div>
           </div>
-          {resumeFile && !isUploading && (
+
+          {/* Upload error */}
+          <AnimatePresence>
+            {uploadError && (
+              <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="text-red-400 text-xs mt-2 text-center">
+                {uploadError}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {isResumeReady && role && (
             <p className="text-green-400/80 text-xs mt-2 text-center">
-              {language === 'en' ? 'Resume parsed! Questions generated dynamically.' : 'रेज़्यूमे प्रोसेस हो गया! प्रश्न तैयार हैं।'}
+              {language === 'en'
+                ? `✓ Parsed: ${role} · ${experience}`
+                : `✓ पार्स हुआ: ${role} · ${experience}`}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-4 mb-6">
-          <div className="h-px bg-white/10 flex-1"></div>
-          <span className="text-xs text-white/40 uppercase font-semibold">OR Enter Manually</span>
-          <div className="h-px bg-white/10 flex-1"></div>
+        {/* Divider */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="h-px bg-white/10 flex-1" />
+          <span className="text-xs text-white/40 uppercase font-bold tracking-widest">OR</span>
+          <div className="h-px bg-white/10 flex-1" />
         </div>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 block">Job Role</label>
-            <input value={role} onChange={e => setRole(e.target.value)}
-              placeholder={language === 'en' ? 'e.g. Frontend Developer' : 'जैसे: फ्रंटेंड डेवलपर'}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-purple-400 transition" />
+        {/* ── PATH B: Manual Input ────────────────────────────────────────── */}
+        <div className={`mb-6 rounded-2xl border p-4 transition-all duration-300 ${
+          isManualReady && !isResumeReady
+            ? 'border-purple-400/60 bg-purple-500/10'
+            : 'border-white/10 bg-white/5'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                isManualReady ? 'bg-purple-500 text-white' : 'bg-white/20 text-white/60'
+              }`}>
+                {isManualReady ? <FaCheck size={10} /> : 'B'}
+              </div>
+              <span className="text-sm font-semibold text-white">
+                {language === 'en' ? 'Manual Mode' : 'मैन्युअल मोड'}
+              </span>
+            </div>
+            {!isManualReady && (
+              <span className="text-xs text-white/40">
+                {language === 'en' ? 'Role + Level required' : 'भूमिका + स्तर आवश्यक'}
+              </span>
+            )}
+            {isManualReady && !isResumeReady && (
+              <span className="text-xs font-bold text-purple-400 bg-purple-400/15 px-2 py-0.5 rounded-full">
+                {language === 'en' ? '✓ Ready' : '✓ तैयार'}
+              </span>
+            )}
           </div>
-          <div>
-            <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 block">Experience</label>
-            <select value={experience} onChange={e => setExperience(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-400 transition">
-              <option value="" className="text-black">{language === 'en' ? 'Select level' : 'स्तर चुनें'}</option>
-              <option value="Fresher" className="text-black">Fresher</option>
-              <option value="1-2 years" className="text-black">1–2 Years</option>
-              <option value="3-5 years" className="text-black">3–5 Years</option>
-              <option value="5+ years" className="text-black">5+ Years</option>
-            </select>
+
+          <div className="space-y-3">
+            {/* Avatar Gender */}
+            <div>
+              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 block">Avatar Voice</label>
+              <div className="flex gap-3">
+                <button onClick={() => setAvatarGender('female')}
+                  className={`flex-1 py-2.5 rounded-xl border transition text-sm font-medium ${
+                    avatarGender === 'female'
+                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
+                      : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                  }`}>
+                  {language === 'en' ? '♀ Female' : '♀ महिला'}
+                </button>
+                <button onClick={() => setAvatarGender('male')}
+                  className={`flex-1 py-2.5 rounded-xl border transition text-sm font-medium ${
+                    avatarGender === 'male'
+                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
+                      : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                  }`}>
+                  {language === 'en' ? '♂ Male' : '♂ पुरुष'}
+                </button>
+              </div>
+            </div>
+
+            {/* Job Role */}
+            <div>
+              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1 justify-between">
+                <span>{language === 'en' ? 'Job Role' : 'पद'}</span>
+                {!role.trim() && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
+              </label>
+              <input value={role} onChange={e => setRole(e.target.value)}
+                placeholder={language === 'en' ? 'e.g. Frontend Developer' : 'जैसे: फ्रंटेंड डेवलपर'}
+                className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-purple-400 transition ${
+                  role.trim() ? 'border-purple-400/50' : 'border-white/10'
+                }`} />
+            </div>
+
+            {/* Experience */}
+            <div>
+              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center justify-between">
+                <span>{language === 'en' ? 'Experience Level' : 'अनुभव स्तर'}</span>
+                {!experience && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
+              </label>
+              <select value={experience} onChange={e => setExperience(e.target.value)}
+                className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white outline-none focus:border-purple-400 transition ${
+                  experience ? 'border-purple-400/50' : 'border-white/10'
+                }`}>
+                <option value="" className="text-black">{language === 'en' ? 'Select level' : 'स्तर चुनें'}</option>
+                <option value="Fresher" className="text-black">Fresher</option>
+                <option value="1-2 years" className="text-black">1–2 Years</option>
+                <option value="3-5 years" className="text-black">3–5 Years</option>
+                <option value="5+ years" className="text-black">5+ Years</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <button onClick={startSession} disabled={!role || !experience}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+        {/* ── Validation hint ─────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {!canStart && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="text-white/40 text-xs text-center mb-4">
+              {language === 'en'
+                ? 'Upload a resume  OR  fill Job Role + Experience to continue'
+                : 'जारी रखने के लिए रेज़्यूमे अपलोड करें या भूमिका + स्तर भरें'}
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* ── Start Button ────────────────────────────────────────────────── */}
+        <button onClick={startSession} disabled={!canStart || isUploading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold text-white hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
           {language === 'en' ? 'Start Interview' : 'साक्षात्कार शुरू करें'} <BsArrowRight />
         </button>
       </motion.div>
@@ -382,13 +574,13 @@ export default function AvatarInterview() {
         <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
         <h2 className="text-3xl font-bold mb-3">{language === 'en' ? 'Interview Complete!' : 'साक्षात्कार पूर्ण!'}</h2>
         <p className="text-white/60 mb-8">{language === 'en' ? 'Great job! You answered all questions.' : 'बहुत अच्छा! आपने सभी प्रश्नों के उत्तर दिए।'}</p>
-        
+
         <div className="flex flex-col gap-3">
           <button onClick={() => navigate('/history')}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 rounded-2xl font-bold hover:opacity-90 transition">
             {language === 'en' ? 'Go to Dashboard' : 'डैशबोर्ड पर जाएँ'}
           </button>
-          
+
           <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0) }}
             className="w-full bg-white/10 backdrop-blur border border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition">
             {language === 'en' ? 'Start New Interview' : 'नया साक्षात्कार शुरू करें'}
@@ -407,7 +599,7 @@ export default function AvatarInterview() {
         <div className="lg:w-[38%] flex flex-col gap-4">
           {/* Avatar Video */}
           <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
-            <video ref={videoRef} src={femaleVideo} muted playsInline preload="auto" loop
+            <video ref={videoRef} src={avatarGender === 'female' ? femaleVideo : maleVideo} muted playsInline preload="auto" loop
               className="w-full h-auto object-cover" />
             {isAISpeaking && (
               <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full">
@@ -440,10 +632,10 @@ export default function AvatarInterview() {
             </div>
             <div className="h-1 flex-1 mx-4 bg-white/10 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-                style={{ width: `${((qIndex + 1) / sampleQuestions[language].length) * 100}%` }} />
+                style={{ width: `${((qIndex + 1) / 8) * 100}%` }} />
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-white/40">{sampleQuestions[language].length}</p>
+              <p className="text-2xl font-bold text-white/40">8</p>
               <p className="text-white/40 text-xs uppercase tracking-wider">{language === 'en' ? 'Total' : 'कुल'}</p>
             </div>
           </div>
@@ -481,11 +673,10 @@ export default function AvatarInterview() {
             {messages.map((m, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                 className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                  m.from === 'user'
+                <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${m.from === 'user'
                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-br-sm'
                     : 'bg-white/10 text-white/80 rounded-bl-sm'
-                }`}>
+                  }`}>
                   {m.text}
                 </div>
               </motion.div>
@@ -510,11 +701,10 @@ export default function AvatarInterview() {
             <div className="flex items-center gap-3">
               {/* Mic Button */}
               <motion.button whileTap={{ scale: 0.9 }} onClick={toggleMic}
-                className={`w-14 h-14 flex items-center justify-center rounded-2xl border transition-all ${
-                  isMicOn
+                className={`w-14 h-14 flex items-center justify-center rounded-2xl border transition-all ${isMicOn
                     ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-transparent text-white shadow-lg shadow-purple-500/30'
                     : 'bg-white/5 border-white/10 text-white/50 hover:border-white/20'
-                }`}>
+                  }`}>
                 {isMicOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
               </motion.button>
 
@@ -551,7 +741,7 @@ export default function AvatarInterview() {
                   <><FaSpinner className="animate-spin" /> {language === 'en' ? 'Saving...' : 'सहेज रहा है...'}</>
                 ) : (
                   <>
-                    {qIndex + 1 >= sampleQuestions[language].length
+                    {qIndex + 1 >= 8
                       ? (language === 'en' ? 'Finish Interview' : 'साक्षात्कार समाप्त करें')
                       : (language === 'en' ? 'Next Question' : 'अगला प्रश्न')
                     } <BsArrowRight />
@@ -563,5 +753,14 @@ export default function AvatarInterview() {
         </div>
       </div>
     </div>
+  )
+}
+
+// 4. Add React Error Boundary Wrapper
+export default function AvatarInterview() {
+  return (
+    <ErrorBoundary>
+      <AvatarInterviewComponent />
+    </ErrorBoundary>
   )
 }

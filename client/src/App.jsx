@@ -59,7 +59,7 @@ function App() {
   }, [dispatch])
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#f3f3f3] dark:bg-slate-900 transition-colors duration-300">
       {!isInterviewRoom && <Navbar />}
       
       <main className="flex-1">

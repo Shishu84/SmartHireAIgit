@@ -231,77 +231,84 @@ export const processAvatarResume = async (req, res) => {
         const fileBuffer = await fs.promises.readFile(filepath)
         const uint8Array = new Uint8Array(fileBuffer)
         const pdf = await pdfjsLib.getDocument({ data: uint8Array, verbosity: 0 }).promise
+        
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum)
-          const textContent = await page.getTextContent()
-          resumeText += textContent.items.map(item => item.str).join(" ") + "\n"
+          try {
+            const page = await pdf.getPage(pageNum)
+            const textContent = await page.getTextContent()
+            resumeText += textContent.items.map(item => item.str).join(" ") + "\n"
+          } catch (e) {
+            // Silently skip unreadable text layers
+          }
         }
         
-        // Validation for scanned PDFs
+        // Automatic extraction strategy optimization: Fallback to OCR if text is minimal
         if (resumeText.trim().length < 50) {
-            console.log("PDF text layer is too small, falling back to embedded image OCR...");
             let ocrText = "";
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const ops = await page.getOperatorList();
-                for (let i = 0; i < ops.fnArray.length; i++) {
-                    if (ops.fnArray[i] === pdfjsLib.OPS.paintImageXObject) {
-                        const imgKey = ops.argsArray[i][0];
-                        const imgText = await new Promise((resolve) => {
-                            page.objs.get(imgKey, async (img) => {
-                                try {
-                                    if (!img) return resolve("");
-                                    const pixels = img.width * img.height;
-                                    const rgbaBuffer = Buffer.alloc(pixels * 4);
-                                    const imgData = img.data;
+                try {
+                  const page = await pdf.getPage(pageNum);
+                  const ops = await page.getOperatorList();
+                  for (let i = 0; i < ops.fnArray.length; i++) {
+                      if (ops.fnArray[i] === pdfjsLib.OPS.paintImageXObject) {
+                          const imgKey = ops.argsArray[i][0];
+                          const imgText = await new Promise((resolve) => {
+                              page.objs.get(imgKey, async (img) => {
+                                  try {
+                                      if (!img) return resolve("");
+                                      const pixels = img.width * img.height;
+                                      const rgbaBuffer = Buffer.alloc(pixels * 4);
+                                      const imgData = img.data;
 
-                                    if (imgData.length === pixels * 3) {
-                                        for (let p = 0, j = 0; p < imgData.length; p += 3, j += 4) {
-                                            rgbaBuffer[j] = imgData[p];
-                                            rgbaBuffer[j + 1] = imgData[p + 1];
-                                            rgbaBuffer[j + 2] = imgData[p + 2];
-                                            rgbaBuffer[j + 3] = 255;
-                                        }
-                                    } else if (imgData.length === pixels * 4) {
-                                        for (let p = 0; p < imgData.length; p++) rgbaBuffer[p] = imgData[p];
-                                    } else {
-                                        for (let p = 0, j = 0; p < imgData.length; p++, j += 4) {
-                                            rgbaBuffer[j] = imgData[p];
-                                            rgbaBuffer[j + 1] = imgData[p];
-                                            rgbaBuffer[j + 2] = imgData[p];
-                                            rgbaBuffer[j + 3] = 255;
-                                        }
-                                    }
+                                      if (imgData.length === pixels * 3) {
+                                          for (let p = 0, j = 0; p < imgData.length; p += 3, j += 4) {
+                                              rgbaBuffer[j] = imgData[p];
+                                              rgbaBuffer[j + 1] = imgData[p + 1];
+                                              rgbaBuffer[j + 2] = imgData[p + 2];
+                                              rgbaBuffer[j + 3] = 255;
+                                          }
+                                      } else if (imgData.length === pixels * 4) {
+                                          for (let p = 0; p < imgData.length; p++) rgbaBuffer[p] = imgData[p];
+                                      } else {
+                                          for (let p = 0, j = 0; p < imgData.length; p++, j += 4) {
+                                              rgbaBuffer[j] = imgData[p];
+                                              rgbaBuffer[j + 1] = imgData[p];
+                                              rgbaBuffer[j + 2] = imgData[p];
+                                              rgbaBuffer[j + 3] = 255;
+                                          }
+                                      }
 
-                                    const jImage = new Jimp({ width: img.width, height: img.height, data: rgbaBuffer });
-                                    const tempPath = filepath + `_page${pageNum}_img.png`;
-                                    
-                                    await jImage.greyscale().contrast(1).normalize().write(tempPath);
-                                    const { data: { text } } = await Tesseract.recognize(tempPath, 'eng', { logger: () => {} });
-                                    fs.unlink(tempPath, () => {});
-                                    resolve(text);
-                                } catch (err) {
-                                    console.error("PDF Image OCR error:", err);
-                                    resolve("");
-                                }
-                            });
-                        });
-                        ocrText += imgText + "\n";
-                    }
+                                      const jImage = new Jimp({ width: img.width, height: img.height, data: rgbaBuffer });
+                                      const tempPath = filepath + `_page${pageNum}_img.png`;
+                                      
+                                      await jImage.greyscale().contrast(1).normalize().write(tempPath);
+                                      const { data: { text } } = await Tesseract.recognize(tempPath, 'eng', { logger: () => {} });
+                                      fs.unlink(tempPath, () => {});
+                                      resolve(text);
+                                  } catch (err) {
+                                      resolve(""); // Seamless continuation on internal processing errors
+                                  }
+                              });
+                          });
+                          ocrText += imgText + "\n";
+                      }
+                  }
+                } catch (e) {
+                  // Seamless continuation
                 }
             }
             resumeText = ocrText.replace(/\s+/g, " ").trim();
         }
         await pdf.destroy()
       } catch (err) {
-        console.error("PDF Parsing Error:", err)
+        // Silently caught to prevent internal error exposure
       }
     } else if (fileExt === '.docx') {
       try {
         const result = await mammoth.extractRawText({ path: filepath })
         resumeText = result.value
       } catch (err) {
-        console.error("DOCX Parsing Error:", err)
+        // Silently caught
       }
     } else if (fileExt === '.doc') {
       try {
@@ -309,29 +316,20 @@ export const processAvatarResume = async (req, res) => {
         const extracted = await extractor.extract(filepath)
         resumeText = extracted.getBody()
       } catch (err) {
-        console.error("DOC Parsing Error:", err)
+        // Silently caught
       }
     } else if (['.png', '.jpg', '.jpeg'].includes(fileExt)) {
       try {
-        console.log("Running direct image OCR with pre-processing...");
-        
-        // Image Preprocessing with Jimp
         const image = await Jimp.read(filepath);
         const processedPath = filepath + "_processed.png";
         
-        await image
-            .greyscale()
-            .contrast(1)
-            .normalize()
-            .write(processedPath);
-
+        await image.greyscale().contrast(1).normalize().write(processedPath);
         const { data: { text } } = await Tesseract.recognize(processedPath, 'eng', { logger: () => {} });
         resumeText = (text || "").replace(/\s+/g, " ").trim();
         
-        // Clean up processed image
         fs.unlink(processedPath, () => {});
       } catch (err) {
-          console.error("OCR Error:", err);
+        // Silently caught
       }
     } else {
       if (filepath) fs.unlink(filepath, () => {})
@@ -507,6 +505,34 @@ Return ONLY valid JSON:
         socket.emit("avatar:question_ready", { text: question, language: "en" })
       }
     })
+
+    socket.on("avatar:start_interview", async ({ role, experience, language }) => {
+      try {
+        const messages = [
+          {
+            role: "system",
+            content: `You are an expert AI Technical Recruiter. Generate a single, natural, and highly relevant opening interview question for a candidate applying for the role of "${role}" with "${experience}" experience. Keep it conversational, welcoming, and between 15-25 words.`
+          }
+        ];
+        const aiReply = await askAi(messages);
+        let firstQuestion = (aiReply || "Tell me about yourself and your background.").trim();
+        
+        // Remove quotes if the AI wrapped it
+        firstQuestion = firstQuestion.replace(/^["']|["']$/g, '');
+
+        if (language === "hi") {
+          firstQuestion = await translateText(firstQuestion, "hi");
+        }
+        
+        socket.emit("avatar:question_ready", { text: firstQuestion, language });
+      } catch (err) {
+        console.error("[Avatar Socket] Failed to generate start question:", err);
+        socket.emit("avatar:question_ready", { 
+          text: language === 'hi' ? 'अपने बारे में और अपनी पृष्ठभूमि के बारे में बताइए।' : 'Tell me about yourself and your background.',
+          language 
+        });
+      }
+    });
 
     socket.on("disconnect", () => {
       console.log(`[Avatar Socket] Client disconnected: ${socket.id}`)

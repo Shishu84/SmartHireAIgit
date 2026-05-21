@@ -39,7 +39,7 @@ function About() {
     // Core Features List
     const coreFeatures = [
         {
-            icon: <FaRobot className="text-emerald-500 text-3xl" />,
+            icon: <FaRobot className="text-purple-500 text-3xl" />,
             title: "AI Interview System",
             desc: "Immersive simulated mock interviews featuring dynamic, interactive AI avatars reacting to your answers in real-time."
         },
@@ -91,13 +91,13 @@ function About() {
         <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
             
             {/* Hero Section */}
-            <section className="relative overflow-hidden pt-20 pb-24 lg:pt-28 lg:pb-32 bg-linear-to-b from-emerald-50/50 via-transparent to-transparent dark:from-emerald-950/15">
+            <section className="relative overflow-hidden pt-20 pb-24 lg:pt-28 lg:pb-32 bg-linear-to-b from-purple-50/50 via-transparent to-transparent dark:from-purple-950/15">
                 <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
                     <motion.span
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-400 text-xs font-bold uppercase tracking-wider mb-6"
                     >
                         <FaRobot /> The Future of Hiring Preparation
                     </motion.span>
@@ -108,7 +108,7 @@ function About() {
                         className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-none mb-6"
                     >
                         AI-Powered Interview & <br />
-                        <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300">
+                        <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-teal-500 dark:from-purple-400 dark:to-teal-300">
                             Resume Intelligence
                         </span> Platform
                     </motion.h1>
@@ -128,7 +128,7 @@ function About() {
                     >
                         <button
                             onClick={() => navigate("/auth")}
-                            className="btn-press w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
+                            className="btn-press w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
                         >
                             Get Started <FaArrowRight />
                         </button>
@@ -144,7 +144,7 @@ function About() {
                     </motion.div>
                 </div>
                 {/* Background Blobs */}
-                <div className="animate-float absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full filter blur-3xl" />
+                <div className="animate-float absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-purple-500/10 dark:bg-purple-500/5 rounded-full filter blur-3xl" />
                 <div className="animate-float absolute top-1/3 right-1/4 -translate-y-1/2 w-80 h-80 bg-teal-500/10 dark:bg-teal-500/5 rounded-full filter blur-3xl" style={{ animationDelay: '1.5s' }} />
             </section>
 
@@ -174,16 +174,16 @@ function About() {
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.15 }}
                             viewport={{ once: true }}
-                            className="lg:col-span-5 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-700/50 p-8 rounded-3xl border border-emerald-100 dark:border-slate-700/60 shadow-xs"
+                            className="lg:col-span-5 bg-linear-to-br from-purple-50 to-teal-50 dark:from-slate-800 dark:to-slate-700/50 p-8 rounded-3xl border border-purple-100 dark:border-slate-700/60 shadow-xs"
                         >
-                            <div className="flex items-center gap-3 mb-4 text-emerald-600 dark:text-emerald-400">
+                            <div className="flex items-center gap-3 mb-4 text-purple-600 dark:text-purple-400">
                                 <FaLightbulb className="text-2xl shrink-0" />
                                 <h3 className="font-bold text-xl text-gray-900 dark:text-white">Why It Exists</h3>
                             </div>
                             <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
                                 Traditional hiring preparation is scattered. Candidates upload resumes without knowing their ATS readability, and coding challenges rarely check semantic reasoning.
                             </p>
-                            <span className="text-emerald-700 dark:text-emerald-400 text-sm font-bold block">
+                            <span className="text-purple-700 dark:text-purple-400 text-sm font-bold block">
                                 👉 SmartHire.AI connects the entire journey into a single unified preparation hub.
                             </span>
                         </motion.div>
@@ -216,7 +216,7 @@ function About() {
                             transition={{ duration: 0.45, delay: idx * 0.08 }}
                             viewport={{ once: true }}
                             whileHover={{ y: -6, boxShadow: '0 20px 40px -12px rgba(16,185,129,0.15)' }}
-                            className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xs border border-gray-100 dark:border-slate-700/50 hover:border-emerald-200 dark:hover:border-emerald-950 transition-all"
+                            className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xs border border-gray-100 dark:border-slate-700/50 hover:border-purple-200 dark:hover:border-purple-950 transition-all"
                         >
                             <div className="mb-5">{feat.icon}</div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{feat.title}</h3>
@@ -231,7 +231,7 @@ function About() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-xs block mb-3">
+                            <span className="text-purple-600 dark:text-purple-400 font-bold uppercase tracking-wider text-xs block mb-3">
                                 TECHNICAL FRAMEWORKS
                             </span>
                             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
@@ -243,7 +243,7 @@ function About() {
                             <div className="space-y-4">
                                 {technologyList.map((tech, idx) => (
                                     <div key={idx} className="flex gap-4">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0" />
                                         <div>
                                             <h4 className="font-bold text-gray-900 dark:text-white text-base">{tech.title}</h4>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tech.desc}</p>
@@ -257,7 +257,7 @@ function About() {
                             <div className="space-y-4">
                                 {benefits.map((b, idx) => (
                                     <div key={idx} className="flex items-center gap-3.5 bg-gray-50 dark:bg-slate-900/60 px-5 py-4 rounded-2xl border border-gray-100 dark:border-slate-700/50">
-                                        <FaCheck className="text-emerald-500 shrink-0" />
+                                        <FaCheck className="text-purple-500 shrink-0" />
                                         <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{b}</span>
                                     </div>
                                 ))}
@@ -270,18 +270,18 @@ function About() {
             {/* Vision & Mission */}
             <section className="py-20 max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="p-8 md:p-10 rounded-3xl bg-linear-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+                    <div className="p-8 md:p-10 rounded-3xl bg-linear-to-br from-purple-500 to-teal-600 text-white shadow-md">
                         <div className="flex items-center gap-3 mb-6">
                             <FaEye className="text-3xl" />
                             <h3 className="text-2xl font-black">Our Vision</h3>
                         </div>
-                        <p className="text-emerald-100 text-lg leading-relaxed font-medium">
+                        <p className="text-purple-100 text-lg leading-relaxed font-medium">
                             “To build the most intelligent AI-driven career preparation ecosystem, breaking down the barrier between talented candidates and enterprise hiring benchmarks globally.”
                         </p>
                     </div>
                     <div className="p-8 md:p-10 rounded-3xl bg-slate-900 border border-slate-800 text-white shadow-md">
                         <div className="flex items-center gap-3 mb-6">
-                            <FaGraduationCap className="text-3xl text-emerald-400" />
+                            <FaGraduationCap className="text-3xl text-purple-400" />
                             <h3 className="text-2xl font-black">Our Mission</h3>
                         </div>
                         <p className="text-gray-400 text-lg leading-relaxed font-medium">
@@ -297,7 +297,7 @@ function About() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
                         {stats.map((stat, idx) => (
                             <div key={idx} className="space-y-2">
-                                <p className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-600 dark:text-emerald-400">{stat.count}</p>
+                                <p className="text-3xl sm:text-4xl lg:text-5xl font-black text-purple-600 dark:text-purple-400">{stat.count}</p>
                                 <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">{stat.label}</p>
                             </div>
                         ))}
@@ -319,7 +319,7 @@ function About() {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                         <button 
                             onClick={() => navigate("/avatar-interview")}
-                            className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition"
+                            className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white font-bold rounded-xl transition"
                         >
                             Start Interview
                         </button>
@@ -332,7 +332,7 @@ function About() {
                     </div>
                 </div>
                 {/* Background Decorative Blob */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full filter blur-3xl" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 rounded-full filter blur-3xl" />
             </section>
 
         </div>

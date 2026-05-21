@@ -35,7 +35,7 @@ function InterviewPage() {
     }, [interviewData, step]);
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='w-full'>
         {step===1 && (
             <Step1SetUp onStart={(data)=>{
                 setInterviewData(data);

@@ -7,6 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "dependencies": {
@@ -30,5 +31,9 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "keywords": []
 }

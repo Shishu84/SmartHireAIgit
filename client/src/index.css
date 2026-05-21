@@ -1,14 +1,19 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: "Hubot Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+
 /* ─── Global Scroll Behavior ───────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
 
 /* ─── Scrollbar Styling ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #059669; }
+::-webkit-scrollbar-thumb { background: #A855F7; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #9333EA; }
 
 /* ─── GPU-optimized Keyframes ───────────────────────────────────────────── */
 @keyframes float {
@@ -20,9 +25,9 @@ html { scroll-behavior: smooth; }
   100% { background-position: 200% 0; }
 }
 @keyframes pulse-ring {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(16,185,129,0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(168, 85, 247, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
 }
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(20px); }
@@ -74,14 +79,14 @@ html { scroll-behavior: smooth; }
 
 /* ─── Smooth Focus Ring ─────────────────────────────────────────────────── */
 .focus-ring:focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid #A855F7;
   outline-offset: 3px;
   border-radius: 8px;
 }
 
 /* ─── Card Hover Glow ───────────────────────────────────────────────────── */
 .card-glow { transition: box-shadow 0.3s ease, transform 0.3s ease; }
-.card-glow:hover { box-shadow: 0 20px 60px -12px rgba(16,185,129,0.15); transform: translateY(-3px); }
+.card-glow:hover { box-shadow: 0 20px 60px -12px rgba(168, 85, 247, 0.15); transform: translateY(-3px); }
 
 /* ─── Nav Link Underline Slide ──────────────────────────────────────────── */
 .nav-link { position: relative; }
@@ -90,7 +95,7 @@ html { scroll-behavior: smooth; }
   position: absolute;
   bottom: -2px; left: 0;
   width: 0; height: 2px;
-  background: #10b981;
+  background: #A855F7;
   border-radius: 2px;
   transition: width 0.25s ease;
 }

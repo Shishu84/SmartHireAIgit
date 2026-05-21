@@ -8,7 +8,7 @@ function PrivacyPolicy() {
                 
                 {/* Header */}
                 <div className="flex items-center gap-4 border-b border-gray-200 dark:border-slate-700 pb-6 mb-8">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
                         <FaShieldAlt className="text-2xl" />
                     </div>
                     <div>
@@ -67,7 +67,7 @@ function PrivacyPolicy() {
 
                     <section className="border-t border-gray-200 dark:border-slate-700 pt-8 text-center">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Have questions or concerns about how your details are handled? Reach out to us via our <a href="/contact" className="text-emerald-600 dark:text-emerald-400 hover:underline font-bold">Contact Page</a>.
+                            Have questions or concerns about how your details are handled? Reach out to us via our <a href="/contact" className="text-purple-600 dark:text-purple-400 hover:underline font-bold">Contact Page</a>.
                         </p>
                     </section>
                 </div>

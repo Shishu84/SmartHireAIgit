@@ -1,44 +1,72 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'system';
+  const [theme, setThemeState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('smart_hire_theme');
+      if (stored === 'dark' || stored === 'light') return stored;
+    }
+    return 'system';
   });
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    
-    const applyTheme = () => {
-      let activeTheme = theme;
-      if (theme === 'system') {
-        activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
+  const getSystemTheme = () => {
+    if (typeof window === 'undefined') return 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
 
-      if (activeTheme === 'dark') {
-        root.classList.add('dark');
-        root.style.colorScheme = 'dark';
-      } else {
-        root.classList.remove('dark');
-        root.style.colorScheme = 'light';
+  const [activeTheme, setActiveTheme] = useState(() => {
+    return theme === 'system' ? getSystemTheme() : theme;
+  });
+
+  const applyTheme = useCallback((targetTheme) => {
+    const root = window.document.documentElement;
+    const resolvedTheme = targetTheme === 'system' ? getSystemTheme() : targetTheme;
+    
+    if (resolvedTheme === 'dark') {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+    }
+    
+    setActiveTheme(resolvedTheme);
+  }, []);
+
+  const setTheme = useCallback((newTheme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('smart_hire_theme', newTheme);
+    applyTheme(newTheme);
+  }, [applyTheme]);
+
+  const toggleTheme = useCallback(() => {
+    const current = theme === 'system' ? getSystemTheme() : theme;
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  }, [theme, setTheme]);
+
+  // Handle system theme changes when in 'system' mode
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      if (theme === 'system') {
+        applyTheme('system');
       }
     };
 
-    applyTheme();
-    localStorage.setItem('theme', theme);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme, applyTheme]);
 
-    // Listen for system theme changes if set to system
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyTheme();
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-  }, [theme]);
+  // Initial application
+  useEffect(() => {
+    applyTheme(theme);
+  }, []); // Run once on mount
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, activeTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

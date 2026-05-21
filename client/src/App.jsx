@@ -25,22 +25,43 @@ import AuthRoute from './components/AuthRoute'
 
 export const ServerUrl = "http://localhost:8000"
 
-const PageWrapper = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -8 }}
-    transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-  >
-    {children}
-  </motion.div>
-)
+const PageWrapper = ({ children }) => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function ScrollManager() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // We delay the scroll slightly to allow Framer Motion exit animations to start,
+    // avoiding a harsh jump before the page fades out.
+    const timeout = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, 10);
+    return () => clearTimeout(timeout);
+  }, [location.pathname]);
+
+  return null;
+}
 
 function App() {
   const dispatch = useDispatch()
   const location = useLocation()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  
+
   const isInterviewRoom = location.pathname === '/interview' || location.pathname === '/avatar-interview'
 
   useEffect(() => {
@@ -59,11 +80,12 @@ function App() {
   }, [dispatch])
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f3f3f3] dark:bg-slate-900 transition-colors duration-300">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <ScrollManager />
       {!isInterviewRoom && <Navbar />}
-      
+
       <main className="flex-1">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}>
           <Routes location={location} key={location.pathname}>
             {/* Public Routes */}
             <Route path='/' element={<PageWrapper><Home /></PageWrapper>} />
@@ -120,7 +142,7 @@ function App() {
         </AnimatePresence>
       </main>
 
-      {!isInterviewRoom && <Footer />}
+      {(!isInterviewRoom && location.pathname !== '/mentor') && <Footer />}
     </div>
   )
 }

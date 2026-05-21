@@ -99,7 +99,7 @@ function Contact() {
                     transition={{ duration: 0.5 }}
                     className="text-center mb-16"
                 >
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-400 text-xs font-bold uppercase tracking-wider mb-4">
                         💡 Get In Touch
                     </span>
                     <h1 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-4">
@@ -125,9 +125,9 @@ function Contact() {
                         {notification && (
                             <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-3 text-sm font-semibold transition-all duration-300
                                 ${notification.type === 'success'
-                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300'
+                                    ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/80 text-purple-800 dark:text-purple-300'
                                     : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800/80 text-red-800 dark:text-red-300'}`}>
-                                {notification.type === 'success' ? <FaCheckCircle className="text-emerald-500 text-xl shrink-0 mt-0.5" /> : <FaTimesCircle className="text-red-500 text-xl shrink-0 mt-0.5" />}
+                                {notification.type === 'success' ? <FaCheckCircle className="text-purple-500 text-xl shrink-0 mt-0.5" /> : <FaTimesCircle className="text-red-500 text-xl shrink-0 mt-0.5" />}
                                 <span>{notification.text}</span>
                             </div>
                         )}
@@ -140,7 +140,7 @@ function Contact() {
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition dark:text-white"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition dark:text-white"
                                         placeholder="e.g. Rahul Kumar"
                                         required
                                     />
@@ -151,7 +151,7 @@ function Contact() {
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition dark:text-white"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition dark:text-white"
                                         placeholder="e.g. rahul@example.com"
                                         required
                                     />
@@ -165,7 +165,7 @@ function Contact() {
                                         <select
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition dark:text-white appearance-none cursor-pointer font-medium"
+                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition dark:text-white appearance-none cursor-pointer font-medium"
                                         >
                                             {categories.map((cat, idx) => (
                                                 <option key={idx} value={cat} className="dark:bg-slate-800">{cat}</option>
@@ -180,7 +180,7 @@ function Contact() {
                                         type="text"
                                         value={formData.subject}
                                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition dark:text-white"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition dark:text-white"
                                         placeholder="Subject of inquiry"
                                         required
                                     />
@@ -192,7 +192,7 @@ function Contact() {
                                 <textarea
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition dark:text-white h-40 resize-none"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition dark:text-white h-40 resize-none"
                                     placeholder="Write your message here..."
                                     required
                                 />
@@ -200,7 +200,7 @@ function Contact() {
 
                             <button
                                 type="submit"
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md disabled:opacity-75 disabled:cursor-not-allowed"
+                                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md disabled:opacity-75 disabled:cursor-not-allowed"
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -227,7 +227,7 @@ function Contact() {
                         {/* Info cards */}
                         <div className="space-y-6">
                             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700/60 shadow-xs flex gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
                                     <FaEnvelope className="text-xl" />
                                 </div>
                                 <div>
@@ -238,18 +238,18 @@ function Contact() {
                             </div>
 
                             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700/60 shadow-xs flex gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
                                     <FaClock className="text-xl" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900 dark:text-white">Active Support Timings</h3>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monday - Friday: 9:00 AM - 6:00 PM EST</p>
-                                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">Average Response: Under 12 Hours</p>
+                                    <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-1">Average Response: Under 12 Hours</p>
                                 </div>
                             </div>
 
                             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700/60 shadow-xs flex gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
                                     <FaMapMarkerAlt className="text-xl" />
                                 </div>
                                 <div>
@@ -277,7 +277,7 @@ function Contact() {
                                         href={social.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-12 h-12 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-200 transition"
+                                        className="w-12 h-12 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-slate-700 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-200 transition"
                                     >
                                         {social.icon}
                                     </a>
@@ -314,7 +314,7 @@ function Contact() {
                                     className="w-full text-left px-6 py-5 flex items-center justify-between font-bold text-gray-900 dark:text-white text-base sm:text-lg focus:outline-none transition hover:bg-gray-50 dark:hover:bg-slate-700/30"
                                 >
                                     <span>{faq.q}</span>
-                                    <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${activeFaq === idx ? 'rotate-180 text-emerald-500' : ''}`} />
+                                    <FaChevronDown className={`text-gray-400 transition-transform duration-300 ${activeFaq === idx ? 'rotate-180 text-purple-500' : ''}`} />
                                 </button>
                                 <AnimatePresence>
                                     {activeFaq === idx && (

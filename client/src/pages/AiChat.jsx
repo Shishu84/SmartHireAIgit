@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import logo from '../assets/logo.png';
 
 const AiChat = () => {
     const { userData } = useSelector((state) => state.user);
@@ -144,27 +145,24 @@ const AiChat = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#f3f3f3] flex flex-col">
-            
-            <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-4 md:p-6 overflow-hidden">
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 flex flex-col h-[75vh] md:h-[80vh] overflow-hidden">
+        <div className="flex flex-col w-full bg-gray-50 dark:bg-slate-950 transition-colors duration-300" style={{ height: "calc(100dvh - 80px)" }}>
+            <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-2 md:p-6 overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col h-full overflow-hidden transition-colors">
                     {/* Header */}
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 z-10 transition-colors">
                         <div className="flex items-center gap-3">
-                            <div className="bg-black text-white p-2 rounded-xl">
-                                <BsRobot size={20} />
-                            </div>
+                            <img src={logo} alt="SmartHire.AI Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm bg-white" />
                             <div>
-                                <h2 className="font-semibold text-lg leading-tight">Career Intelligence Mentor</h2>
-                                <p className="text-xs text-green-500 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                <h2 className="font-semibold text-lg leading-tight text-gray-900 dark:text-white">Career Intelligence Mentor</h2>
+                                <p className="text-xs text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                                     Context-Aware Engine Active
                                 </p>
                             </div>
                         </div>
                         <button 
                             onClick={clearChat}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-gray-50"
+                            className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800"
                             title="Clear Chat"
                         >
                             <BsTrash size={18} />
@@ -178,12 +176,12 @@ const AiChat = () => {
                                 <motion.div 
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
-                                    className="bg-gray-100 p-6 rounded-full mb-6"
+                                    className="mb-6"
                                 >
-                                    <BsRobot size={48} className="text-black" />
+                                    <img src={logo} alt="SmartHire.AI Logo" className="w-24 h-24 rounded-2xl object-cover shadow-md bg-white p-2" />
                                 </motion.div>
-                                <h3 className="text-xl font-semibold mb-2">Welcome to SmartHire Intelligence</h3>
-                                <p className="text-gray-500 max-w-md mb-8 text-sm">
+                                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Welcome to SmartHire Intelligence</h3>
+                                <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8 text-sm">
                                     I use memory and reasoning to help you advance your career. Ask me for roadmaps, interview analysis, or technical tutoring.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
@@ -191,10 +189,10 @@ const AiChat = () => {
                                         <button 
                                             key={i}
                                             onClick={() => setInput(s)}
-                                            className="text-sm text-left p-4 bg-white border border-gray-100 rounded-2xl hover:border-black transition-all hover:shadow-sm flex items-start gap-3 group"
+                                            className="text-sm text-left p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-black dark:hover:border-emerald-500 transition-all hover:shadow-sm flex items-start gap-3 group"
                                         >
-                                            <BsLightbulb className="text-yellow-500 mt-0.5 flex-shrink-0" />
-                                            <span className="text-gray-600 group-hover:text-black">{s}</span>
+                                            <BsLightbulb className="text-yellow-500 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white">{s}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -210,15 +208,15 @@ const AiChat = () => {
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div className={`flex gap-3 max-w-[85%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-1 ${msg.role === 'user' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}>
-                                            {msg.role === 'user' ? <BsPerson size={16} /> : <BsRobot size={16} />}
+                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-1 overflow-hidden shadow-sm ${msg.role === 'user' ? 'bg-black dark:bg-emerald-600 text-white border border-gray-200 dark:border-gray-700' : 'bg-white'}`}>
+                                            {msg.role === 'user' ? <BsPerson size={16} /> : <img src={logo} alt="AI" className="w-full h-full object-cover p-1" />}
                                         </div>
                                         <div className={`p-4 rounded-2xl shadow-sm ${
                                             msg.role === 'user' 
-                                            ? 'bg-black text-white rounded-tr-none' 
-                                            : 'bg-gray-50 text-gray-800 border border-gray-100 rounded-tl-none'
+                                            ? 'bg-black dark:bg-emerald-600 text-white rounded-tr-none' 
+                                            : 'bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-slate-700 rounded-tl-none'
                                         }`}>
-                                            <div className="text-sm md:text-md leading-relaxed prose prose-sm max-w-none prose-slate">
+                                            <div className="text-sm md:text-md leading-relaxed prose prose-sm max-w-none prose-slate dark:prose-invert">
                                                 <ReactMarkdown 
                                                     remarkPlugins={[remarkGfm]}
                                                     components={{
@@ -253,17 +251,17 @@ const AiChat = () => {
                         {isTyping && (
                             <div className="flex justify-start">
                                 <div className="flex gap-3 max-w-[85%]">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 text-gray-600">
-                                        <BsRobot size={16} />
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                                        <img src={logo} alt="AI" className="w-full h-full object-cover p-1" />
                                     </div>
-                                    <div className="bg-gray-50 p-4 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm">
+                                    <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-gray-100 dark:border-slate-700 shadow-sm">
                                         <div className="flex items-center gap-3">
                                             <div className="flex gap-1">
-                                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                                                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></span>
+                                                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                                                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                                             </div>
-                                            <span className="text-xs text-gray-400 italic">{reasoningTerm}...</span>
+                                            <span className="text-xs text-gray-400 dark:text-gray-500 italic">{reasoningTerm}...</span>
                                         </div>
                                     </div>
                                 </div>
@@ -273,20 +271,20 @@ const AiChat = () => {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-4 bg-white border-t border-gray-100">
+                    <div className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 transition-colors">
                         <form onSubmit={handleSend} className="relative max-w-4xl mx-auto">
                             <input 
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask anything about your career..."
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 pr-16 focus:border-black outline-none transition-all shadow-sm"
+                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl px-6 py-4 pr-16 focus:border-black dark:focus:border-emerald-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                 disabled={isLoading}
                             />
                             <button 
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white p-3 rounded-xl hover:bg-gray-800 disabled:bg-gray-200 transition-all"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black dark:bg-emerald-600 text-white p-3 rounded-xl hover:bg-gray-800 dark:hover:bg-emerald-500 disabled:bg-gray-200 dark:disabled:bg-slate-700 transition-all"
                             >
                                 <BsSend size={20} />
                             </button>

@@ -15,7 +15,7 @@ import logo from '../assets/logo.png';
 
 function Navbar() {
     const { userData } = useSelector((state) => state.user)
-    const { theme, setTheme } = useTheme();
+    const { theme, activeTheme, toggleTheme } = useTheme();
     const [showThemePopup, setShowThemePopup] = useState(false)
     const [showCreditPopup, setShowCreditPopup] = useState(false)
     const [showUserPopup, setShowUserPopup] = useState(false)
@@ -59,12 +59,12 @@ function Navbar() {
     ]
 
     return (
-        <div className='bg-[#f3f3f3] dark:bg-slate-900 flex justify-center px-4 pt-6 relative z-50 transition-colors duration-300'>
+        <div className='bg-gray-50 dark:bg-slate-950 flex justify-center px-4 pt-6 relative z-50 transition-colors duration-300'>
             <motion.div
                 initial={{ opacity: 0, y: -40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-        className={`w-full max-w-6xl rounded-[24px] px-5 py-4 flex justify-between items-center relative transition-all duration-300
+                className={`w-full max-w-6xl rounded-[24px] px-5 py-4 flex justify-between items-center relative transition-all duration-300
                     ${scrolled
                         ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-gray-200/60 dark:border-gray-800/60'
                         : 'bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800'
@@ -79,7 +79,7 @@ function Navbar() {
 
                 <div className='hidden md:flex items-center gap-6 relative'>
                     <button onClick={() => navigate("/")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Home</button>
-                    
+
                     <div className='relative group'>
                         <button className='flex items-center gap-1 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition py-2 text-sm'>
                             Features <span className="text-[10px] ml-0.5">▼</span>
@@ -91,7 +91,7 @@ function Navbar() {
                                 <button onClick={() => navigate("/mentor")} className='w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2'>🤖 Career Mentor</button>
                                 <button onClick={() => navigate("/history")} className='w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2'>📊 Dashboard</button>
                             </div>
-                            
+
                             <div className='border-t border-gray-100 dark:border-gray-800 pt-3'>
                                 <p className='text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2'>Resume Suite</p>
                                 <button onClick={() => navigate("/history")} className='w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>ATS Diagnostics</button>
@@ -108,16 +108,13 @@ function Navbar() {
                     <button onClick={() => navigate("/about")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>About</button>
                     <button onClick={() => navigate("/contact")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
 
-                    {/* Theme Toggle */}
-                    <button 
-                        onClick={() => {
-                            const isDark = document.documentElement.classList.contains('dark');
-                            setTheme(isDark ? 'light' : 'dark');
-                        }} 
+                    {/* Theme Toggle (Desktop) */}
+                    <button
+                        onClick={toggleTheme}
                         className='flex items-center justify-center w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-600 dark:text-gray-300'
                         aria-label="Toggle Theme"
                     >
-                        {theme === 'dark' || (theme === 'system' && document.documentElement.classList.contains('dark')) ? (
+                        {activeTheme === 'dark' ? (
                             <Sun size={18} className="animate-fade-in" />
                         ) : (
                             <Moon size={18} className="animate-fade-in" />
@@ -155,8 +152,8 @@ function Navbar() {
                             setShowUserPopup(!showUserPopup);
                             setShowCreditPopup(false);
                             setShowThemePopup(false);
-                        }} className='w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-semibold'>
-                            {userData ? userData?.name.slice(0, 1).toUpperCase() : <FaUserAstronaut size={16} />}
+                        }} className='w-9 h-9 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center font-semibold border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:scale-105 transition-transform'>
+                            {userData ? userData?.name.slice(0, 1).toUpperCase() : <img src={logo} alt="Guest" className="w-full h-full object-cover p-1" />}
                         </button>
                         {showUserPopup && (
                             <div className='absolute right-0 mt-3 w-48 bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800 rounded-xl p-4 z-50'>
@@ -171,13 +168,16 @@ function Navbar() {
                     </div>
                 </div>
 
-                {/* Mobile: Credits + Hamburger */}
-                <div className='flex md:hidden items-center gap-3'>
+                {/* Mobile: Credits, Theme, + Hamburger */}
+                <div className='flex md:hidden items-center gap-2'>
+                    <button onClick={toggleTheme} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                        {activeTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                    </button>
                     <button onClick={() => {
                         if (!userData) { setShowAuth(true); return; }
                         setShowCreditPopup(!showCreditPopup)
-                    }} className='flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-1.5 rounded-full text-sm'>
-                        <BsCoin size={16} className="text-gray-600 dark:text-gray-300"/> {userData?.credits || 0}
+                    }} className='flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-1.5 rounded-xl text-sm font-medium'>
+                        <BsCoin size={16} className="text-gray-600 dark:text-gray-300" /> {userData?.credits || 0}
                     </button>
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

@@ -9,6 +9,7 @@ import maleVideo from '../assets/videos/male-ai.mp4'
 import femaleVideo from '../assets/videos/female-ai.mp4'
 import { ServerUrl } from '../App'
 import ErrorBoundary from '../components/ErrorBoundary'
+import logo from '../assets/logo.png'
 
 const SOCKET_URL = 'http://localhost:8000'
 
@@ -366,22 +367,22 @@ function AvatarInterviewComponent() {
 
   // ── SETUP SCREEN ─────────────────────────────────────────────────────────────
   if (phase === 'setup') return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-slate-100 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 text-white">
+        className="w-full max-w-lg bg-white dark:bg-white/10 shadow-sm backdrop-blur-xl border border-gray-200 dark:border-white/20 rounded-3xl p-6 sm:p-8 text-gray-900 dark:text-white">
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <BsGlobe2 size={28} />
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 bg-white">
+            <img src={logo} alt="SmartHire.AI Logo" className="w-full h-full object-cover p-1.5" />
           </div>
           <h1 className="text-2xl font-bold">Avatar Interview</h1>
-          <p className="text-white/60 text-sm mt-1">Real-time multilingual AI interview</p>
+          <p className="text-gray-500 dark:text-white/60 text-sm mt-1">Real-time multilingual AI interview</p>
         </div>
 
         {/* Language Toggle */}
-        <div className="flex items-center justify-between bg-white/5 rounded-2xl p-4 mb-6 border border-white/10">
-          <span className="text-sm font-medium text-white/70">Interview Language</span>
+        <div className="flex items-center justify-between bg-white/60 dark:bg-white/5 shadow-sm rounded-2xl p-4 mb-6 border border-gray-200 dark:border-white/10">
+          <span className="text-sm font-medium text-gray-600 dark:text-white/70">Interview Language</span>
           <button onClick={toggleLanguage}
             className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition">
             <BsGlobe2 size={14} />
@@ -393,16 +394,16 @@ function AvatarInterviewComponent() {
         <div className={`mb-4 rounded-2xl border p-4 transition-all duration-300 ${
           isResumeReady
             ? 'border-green-400/60 bg-green-500/10'
-            : 'border-white/10 bg-white/5'
+            : 'border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/5 shadow-sm'
         }`}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                isResumeReady ? 'bg-green-500 text-white' : 'bg-white/20 text-white/60'
+                isResumeReady ? 'bg-green-500 text-gray-900 dark:text-white' : 'bg-white/20 text-gray-500 dark:text-white/60'
               }`}>
                 {isResumeReady ? <FaCheck size={10} /> : 'A'}
               </div>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
                 {'Resume-Based Mode'}
               </span>
             </div>
@@ -425,7 +426,7 @@ function AvatarInterviewComponent() {
             <div className={`w-full border border-dashed rounded-xl px-4 py-4 flex items-center justify-center gap-3 transition-all ${
               isResumeReady
                 ? 'border-green-400/50 bg-green-500/10 text-green-400'
-                : 'border-white/20 text-white/70 group-hover:border-purple-400 group-hover:bg-white/10'
+                : 'border-gray-200 dark:border-white/20 text-gray-600 dark:text-white/70 group-hover:border-purple-400 group-hover:bg-white dark:bg-white/10 shadow-sm'
             }`}>
               {isUploading ? (
                 <FaSpinner className="animate-spin text-xl" />
@@ -463,30 +464,30 @@ function AvatarInterviewComponent() {
 
         {/* Divider */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="h-px bg-white/10 flex-1" />
-          <span className="text-xs text-white/40 uppercase font-bold tracking-widest">OR</span>
-          <div className="h-px bg-white/10 flex-1" />
+          <div className="h-px bg-white dark:bg-white/10 shadow-sm flex-1" />
+          <span className="text-xs text-gray-400 dark:text-white/40 uppercase font-bold tracking-widest">OR</span>
+          <div className="h-px bg-white dark:bg-white/10 shadow-sm flex-1" />
         </div>
 
         {/* ── PATH B: Manual Input ────────────────────────────────────────── */}
         <div className={`mb-6 rounded-2xl border p-4 transition-all duration-300 ${
           isManualReady && !isResumeReady
             ? 'border-purple-400/60 bg-purple-500/10'
-            : 'border-white/10 bg-white/5'
+            : 'border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/5 shadow-sm'
         }`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                isManualReady ? 'bg-purple-500 text-white' : 'bg-white/20 text-white/60'
+                isManualReady ? 'bg-purple-500 text-gray-900 dark:text-white' : 'bg-white/20 text-gray-500 dark:text-white/60'
               }`}>
                 {isManualReady ? <FaCheck size={10} /> : 'B'}
               </div>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
                 {'Manual Mode'}
               </span>
             </div>
             {!isManualReady && (
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-gray-400 dark:text-white/40">
                 {'Role + Level required'}
               </span>
             )}
@@ -500,21 +501,21 @@ function AvatarInterviewComponent() {
           <div className="space-y-3">
             {/* Avatar Gender */}
             <div>
-              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 block">Avatar Voice</label>
+              <label className="text-xs text-gray-500 dark:text-white/50 uppercase tracking-wider font-semibold mb-1 block">Avatar Voice</label>
               <div className="flex gap-3">
                 <button onClick={() => setAvatarGender('female')}
                   className={`flex-1 py-2.5 rounded-xl border transition text-sm font-medium ${
                     avatarGender === 'female'
-                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
-                      : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-gray-900 dark:text-white'
+                      : 'bg-white/60 dark:bg-white/5 shadow-sm border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 hover:bg-white dark:bg-white/10 shadow-sm'
                   }`}>
                   {' Female'}
                 </button>
                 <button onClick={() => setAvatarGender('male')}
                   className={`flex-1 py-2.5 rounded-xl border transition text-sm font-medium ${
                     avatarGender === 'male'
-                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
-                      : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
+                      ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-gray-900 dark:text-white'
+                      : 'bg-white/60 dark:bg-white/5 shadow-sm border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 hover:bg-white dark:bg-white/10 shadow-sm'
                   }`}>
                   {'Male'}
                 </button>
@@ -523,26 +524,26 @@ function AvatarInterviewComponent() {
 
             {/* Job Role */}
             <div>
-              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1 justify-between">
+              <label className="text-xs text-gray-500 dark:text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1 justify-between">
                 <span>{'Job Role'}</span>
                 {!role.trim() && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
               </label>
               <input value={role} onChange={e => setRole(e.target.value)}
                 placeholder={'e.g. Frontend Developer'}
-                className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-purple-400 transition ${
-                  role.trim() ? 'border-purple-400/50' : 'border-white/10'
+                className={`w-full bg-white/60 dark:bg-white/5 shadow-sm border rounded-xl px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 outline-none focus:border-purple-400 transition ${
+                  role.trim() ? 'border-purple-400/50' : 'border-gray-200 dark:border-white/10'
                 }`} />
             </div>
 
             {/* Experience */}
             <div>
-              <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center justify-between">
+              <label className="text-xs text-gray-500 dark:text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center justify-between">
                 <span>{'Experience Level'}</span>
                 {!experience && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
               </label>
               <select value={experience} onChange={e => setExperience(e.target.value)}
-                className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white outline-none focus:border-purple-400 transition ${
-                  experience ? 'border-purple-400/50' : 'border-white/10'
+                className={`w-full bg-white/60 dark:bg-white/5 shadow-sm border rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-purple-400 transition ${
+                  experience ? 'border-purple-400/50' : 'border-gray-200 dark:border-white/10'
                 }`}>
                 <option value="" className="text-black">{'Select level'}</option>
                 <option value="Fresher" className="text-black">Fresher</option>
@@ -559,7 +560,7 @@ function AvatarInterviewComponent() {
           {!canStart && (
             <motion.p
               initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="text-white/40 text-xs text-center mb-4">
+              className="text-gray-400 dark:text-white/40 text-xs text-center mb-4">
               {'Upload a resume  OR  fill Job Role + Experience to continue'}
             </motion.p>
           )}
@@ -567,7 +568,7 @@ function AvatarInterviewComponent() {
 
         {/* ── Start Button ────────────────────────────────────────────────── */}
         <button onClick={startSession} disabled={!canStart || isUploading}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold text-white hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold text-gray-900 dark:text-white hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
           {'Start Interview'} <BsArrowRight />
         </button>
       </motion.div>
@@ -576,14 +577,14 @@ function AvatarInterviewComponent() {
 
   // ── DONE SCREEN ──────────────────────────────────────────────────────────────
   if (phase === 'done') return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-slate-100 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300 flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="text-center text-white max-w-md w-full">
+        className="text-center text-gray-900 dark:text-white max-w-md w-full">
         <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
         <h2 className="text-3xl font-bold mb-3">{'Interview Complete!'}</h2>
-        <p className="text-white/60 mb-8">
+        <p className="text-gray-500 dark:text-white/60 mb-8">
           {'Great job! You answered all questions.'}
-          <span className="block mt-3 text-white font-semibold text-lg">Total Questions: {qIndex}</span>
+          <span className="block mt-3 text-gray-900 dark:text-white font-semibold text-lg">Total Questions: {qIndex}</span>
         </p>
 
         <div className="flex flex-col gap-3">
@@ -593,7 +594,7 @@ function AvatarInterviewComponent() {
           </button>
 
           <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0); setPendingNextQ(''); setPendingComplete(false); }}
-            className="w-full bg-white/10 backdrop-blur border border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition">
+            className="w-full bg-white dark:bg-white/10 shadow-sm backdrop-blur border border-gray-200 dark:border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition">
             {'Start New Interview'}
           </button>
         </div>
@@ -603,24 +604,24 @@ function AvatarInterviewComponent() {
 
   // ── ACTIVE INTERVIEW ─────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-slate-100 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl min-h-[85vh] flex flex-col lg:flex-row gap-4">
 
         {/* Left: Avatar Panel */}
         <div className="lg:w-[38%] flex flex-col gap-4">
           {/* Avatar Video */}
-          <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
+          <div className="relative bg-gray-100/80 dark:bg-black/40 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden">
             <video ref={videoRef} src={avatarGender === 'female' ? femaleVideo : maleVideo} muted playsInline preload="auto" loop
               className="w-full h-auto object-cover" />
             {isAISpeaking && (
-              <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full">
+              <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-black/60 backdrop-blur px-3 py-1.5 rounded-full">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-white text-xs font-medium">{'AI Speaking'}</span>
+                <span className="text-gray-900 dark:text-white text-xs font-medium">{'AI Speaking'}</span>
               </div>
             )}
             {/* Language Badge */}
             <button onClick={toggleLanguage}
-              className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-1 hover:opacity-90 transition">
+              className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1.5 rounded-full text-gray-900 dark:text-white text-xs font-bold flex items-center gap-1 hover:opacity-90 transition">
               <BsGlobe2 size={12} /> {'EN'}
             </button>
           </div>
@@ -629,21 +630,21 @@ function AvatarInterviewComponent() {
           <AnimatePresence>
             {subtitle && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="bg-black/60 backdrop-blur border border-white/10 rounded-2xl p-4">
-                <p className="text-white text-sm text-center leading-relaxed">{subtitle}</p>
+                className="bg-white/90 dark:bg-black/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-2xl p-4">
+                <p className="text-gray-900 dark:text-white text-sm text-center leading-relaxed">{subtitle}</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Progress */}
-          <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+          <div className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-gray-200 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                <span className="text-xl font-bold text-white">{qIndex || 1}</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">{qIndex || 1}</span>
               </div>
               <div>
-                <p className="text-white font-bold">Current Question</p>
-                <p className="text-white/40 text-xs">AI is evaluating dynamically</p>
+                <p className="text-gray-900 dark:text-white font-bold">Current Question</p>
+                <p className="text-gray-400 dark:text-white/40 text-xs">AI is evaluating dynamically</p>
               </div>
             </div>
             <div className="flex gap-1.5 mr-2">
@@ -657,10 +658,10 @@ function AvatarInterviewComponent() {
         {/* Right: Chat + Controls */}
         <div className="flex-1 flex flex-col gap-4">
           {/* Header */}
-          <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between">
+          <div className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-gray-200 dark:border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between">
             <div>
-              <h2 className="text-white font-bold text-lg">SmartHireAI Avatar Interview</h2>
-              <p className="text-white/40 text-sm">{role} · {experience}</p>
+              <h2 className="text-gray-900 dark:text-white font-bold text-lg">SmartHireAI Avatar Interview</h2>
+              <p className="text-gray-400 dark:text-white/40 text-sm">{role} · {experience}</p>
             </div>
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
           </div>
@@ -668,18 +669,18 @@ function AvatarInterviewComponent() {
           {/* Current Question */}
           <AnimatePresence mode="wait">
             <motion.div key={qIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-              className="bg-white/5 backdrop-blur border border-purple-400/30 rounded-2xl p-6">
+              className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-purple-400/30 rounded-2xl p-6">
               <p className="text-xs text-purple-300 uppercase tracking-wider font-semibold mb-2">
                 {`Question ${qIndex || 1}`}
               </p>
-              <p className="text-white text-lg font-medium leading-relaxed">{currentQ}</p>
+              <p className="text-gray-900 dark:text-white text-lg font-medium leading-relaxed">{currentQ}</p>
             </motion.div>
           </AnimatePresence>
 
           {/* Message History */}
-          <div className="flex-1 bg-black/20 backdrop-blur border border-white/5 rounded-2xl p-4 overflow-y-auto space-y-3 max-h-60">
+          <div className="flex-1 bg-white/50 dark:bg-black/20 backdrop-blur border border-white/5 rounded-2xl p-4 overflow-y-auto space-y-3 max-h-60">
             {messages.length === 0 && (
-              <p className="text-white/20 text-sm text-center mt-4">
+              <p className="text-gray-400 dark:text-white/20 text-sm text-center mt-4">
                 {'Your conversation will appear here.'}
               </p>
             )}
@@ -687,8 +688,8 @@ function AvatarInterviewComponent() {
               <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                 className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${m.from === 'user'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-br-sm'
-                    : 'bg-white/10 text-white/80 rounded-bl-sm'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 dark:text-white rounded-br-sm'
+                    : 'bg-white dark:bg-white/10 shadow-sm text-white/80 rounded-bl-sm'
                   }`}>
                   {m.text}
                 </div>
@@ -697,13 +698,13 @@ function AvatarInterviewComponent() {
           </div>
 
           {/* Transcript area */}
-          <div className="relative bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4">
+          <div className="relative bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-gray-200 dark:border-white/10 rounded-2xl p-4">
             <textarea
               value={transcript}
               onChange={e => setTranscript(e.target.value)}
               placeholder={'Speak or type your answer here...'}
               rows={3}
-              className="w-full bg-transparent text-white placeholder-white/20 resize-none outline-none text-sm"
+              className="w-full bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 resize-none outline-none text-sm"
             />
           </div>
 
@@ -713,15 +714,15 @@ function AvatarInterviewComponent() {
               {/* Mic Button */}
               <motion.button whileTap={{ scale: 0.9 }} onClick={toggleMic}
                 className={`w-14 h-14 flex items-center justify-center rounded-2xl border transition-all ${isMicOn
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-transparent text-white shadow-lg shadow-purple-500/30'
-                    : 'bg-white/5 border-white/10 text-white/50 hover:border-white/20'
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-transparent text-gray-900 dark:text-white shadow-lg shadow-purple-500/30'
+                    : 'bg-white/60 dark:bg-white/5 shadow-sm border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/50 hover:border-gray-200 dark:border-white/20'
                   }`}>
                 {isMicOn ? <FaMicrophone size={20} /> : <FaMicrophoneSlash size={20} />}
               </motion.button>
 
               {/* Volume bars */}
               {isMicOn && (
-                <div className="flex gap-1 items-center h-14 px-4 bg-white/5 rounded-2xl border border-white/10">
+                <div className="flex gap-1 items-center h-14 px-4 bg-white/60 dark:bg-white/5 shadow-sm rounded-2xl border border-gray-200 dark:border-white/10">
                   {[...Array(6)].map((_, i) => (
                     <motion.div key={i}
                       animate={{ height: Math.max(4, (volumeLevel / 255) * 36 * (Math.random() * 0.5 + 0.75)) }}
@@ -734,20 +735,20 @@ function AvatarInterviewComponent() {
 
               <motion.button whileTap={{ scale: 0.97 }} onClick={submitAnswer}
                 disabled={!transcript.trim() || isAISpeaking}
-                className="flex-1 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+                className="flex-1 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 dark:text-white font-bold rounded-2xl hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
                 {'Submit Answer'} <BsArrowRight />
               </motion.button>
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white/5 backdrop-blur border border-green-400/20 rounded-2xl p-5">
+              className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-green-400/20 rounded-2xl p-5">
               <p className="text-xs text-green-400 uppercase tracking-wider font-semibold mb-2">
                 {'AI Feedback'}
               </p>
               <p className="text-white/80 text-sm leading-relaxed mb-4">{avatarReply}</p>
               <button onClick={nextQuestion}
                 disabled={isSaving || (!pendingNextQ && !pendingComplete)}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-gray-900 dark:text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50">
                 {isSaving ? (
                   <><FaSpinner className="animate-spin" /> {'Saving...'}</>
                 ) : (

@@ -99,7 +99,7 @@ function Step3Report({ report }) {
   };
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-gray-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800 py-10 px-4 transition-colors duration-300'>
+    <div className='min-h-screen bg-linear-to-br from-gray-50 to-purple-50 dark:from-slate-900 dark:to-slate-800 py-10 px-4 transition-colors duration-300'>
       <div className='max-w-6xl mx-auto space-y-8'>
         
         {/* Header */}
@@ -113,7 +113,7 @@ function Step3Report({ report }) {
               <p className='text-gray-500 dark:text-gray-400 mt-1'>Comprehensive analytics and customized roadmap.</p>
             </div>
           </div>
-          <button onClick={downloadPDF} className='bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-medium shadow-md hover:bg-emerald-700 transition'>
+          <button onClick={downloadPDF} className='bg-purple-600 text-white px-6 py-2.5 rounded-xl font-medium shadow-md hover:bg-purple-700 transition'>
             Download PDF Report
           </button>
         </div>
@@ -127,14 +127,14 @@ function Step3Report({ report }) {
                 value={(finalScore/10)*100} 
                 text={`${finalScore}/10`}
                 styles={buildStyles({
-                  pathColor: finalScore >= 7 ? '#10b981' : '#f59e0b',
+                  pathColor: finalScore >= 7 ? '#A855F7' : '#f59e0b',
                   textColor: theme === 'dark' ? '#f9fafb' : '#1f2937',
                   trailColor: theme === 'dark' ? '#374151' : '#f3f4f6',
                   pathTransitionDuration: 1.5
                 })}
               />
             </div>
-            <p className={`font-bold text-lg ${finalScore >= 7 ? 'text-emerald-600' : 'text-yellow-600'}`}>
+            <p className={`font-bold text-lg ${finalScore >= 7 ? 'text-purple-600' : 'text-yellow-600'}`}>
               {finalScore >= 7 ? 'Excellent Performance' : 'Keep Practicing'}
             </p>
           </div>
@@ -153,13 +153,13 @@ function Step3Report({ report }) {
                     <AreaChart data={questionScoreData}>
                         <defs>
                             <linearGradient id="colorQs" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#A855F7" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
                         <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
-                        <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} itemStyle={{ color: '#10b981' }} />
-                        <Area type="monotone" dataKey="score" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorQs)" />
+                        <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} itemStyle={{ color: '#A855F7' }} />
+                        <Area type="monotone" dataKey="score" stroke="#A855F7" strokeWidth={3} fillOpacity={1} fill="url(#colorQs)" />
                     </AreaChart>
                 </ResponsiveContainer>
              </div>
@@ -170,7 +170,7 @@ function Step3Report({ report }) {
         {aiFeedback && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-2"><FaStar className="text-emerald-500"/> AI Evaluation</h2>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-2"><FaStar className="text-purple-500"/> AI Evaluation</h2>
                     <div className="space-y-4">
                         <div className="bg-gray-50 dark:bg-slate-700/50 p-4 rounded-2xl border border-gray-100 dark:border-slate-600">
                             <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Overall Impression</h4>
@@ -189,18 +189,18 @@ function Step3Report({ report }) {
 
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2"><FaTasks className="text-emerald-600 dark:text-emerald-500"/> Persistent Preparation Roadmap</h2>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2"><FaTasks className="text-purple-600 dark:text-purple-500"/> Persistent Preparation Roadmap</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Check off items as you complete them. Your progress is saved automatically!</p>
                         <div className="space-y-3">
                             {suggestions.map((s, i) => (
-                                <label key={s._id || i} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${s.completed ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50' : 'bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
+                                <label key={s._id || i} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${s.completed ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50' : 'bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                                     <input 
                                         type="checkbox" 
                                         checked={s.completed} 
                                         onChange={() => toggleChecklist(s._id, s.completed)}
-                                        className="mt-1 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
+                                        className="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
                                     />
-                                    <span className={`text-sm ${s.completed ? 'text-emerald-700 dark:text-emerald-400 line-through' : 'text-gray-700 dark:text-gray-300'}`}>{s.text}</span>
+                                    <span className={`text-sm ${s.completed ? 'text-purple-700 dark:text-purple-400 line-through' : 'text-gray-700 dark:text-gray-300'}`}>{s.text}</span>
                                 </label>
                             ))}
                             {suggestions.length === 0 && <p className="text-sm text-gray-500 dark:text-gray-400">No suggestions available.</p>}
@@ -208,10 +208,10 @@ function Step3Report({ report }) {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50">
-                            <h4 className="font-bold text-emerald-800 dark:text-emerald-400 mb-3 flex items-center gap-2"><FaCheckCircle/> Strengths</h4>
+                        <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-2xl border border-purple-100 dark:border-purple-800/50">
+                            <h4 className="font-bold text-purple-800 dark:text-purple-400 mb-3 flex items-center gap-2"><FaCheckCircle/> Strengths</h4>
                             <ul className="space-y-2">
-                                {aiFeedback.strengths?.map((s,i)=><li key={i} className="text-xs text-emerald-700 dark:text-emerald-300 flex gap-2"><span className="mt-0.5">•</span> <span>{s}</span></li>)}
+                                {aiFeedback.strengths?.map((s,i)=><li key={i} className="text-xs text-purple-700 dark:text-purple-300 flex gap-2"><span className="mt-0.5">•</span> <span>{s}</span></li>)}
                             </ul>
                         </div>
                         <div className="bg-red-50 dark:bg-red-900/20 p-5 rounded-2xl border border-red-100 dark:border-red-800/50">
@@ -237,7 +237,7 @@ function Step3Report({ report }) {
                                 <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-lg">{q.question}</h3>
                             </div>
                             <div className="flex items-center gap-4 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-slate-600 shrink-0">
-                                <div className="text-center"><p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{q.score}/10</p><p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">Score</p></div>
+                                <div className="text-center"><p className="text-lg font-bold text-purple-600 dark:text-purple-400">{q.score}/10</p><p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">Score</p></div>
                                 <div className="w-px h-8 bg-gray-200 dark:bg-gray-600"></div>
                                 <div className="text-center"><p className="text-lg font-bold text-gray-700 dark:text-gray-300">{q.confidence}/10</p><p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">Conf</p></div>
                                 <div className="w-px h-8 bg-gray-200 dark:bg-gray-600"></div>
@@ -249,8 +249,8 @@ function Step3Report({ report }) {
                             <p className="text-sm text-gray-600 dark:text-gray-400 italic bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-slate-600">"{q.answer || "No audio transcript available."}"</p>
                         </div>
                         <div>
-                            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-1">AI Feedback:</p>
-                            <p className="text-sm text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-800/50">{q.feedback}</p>
+                            <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-1">AI Feedback:</p>
+                            <p className="text-sm text-purple-800 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800/50">{q.feedback}</p>
                         </div>
                     </motion.div>
                 ))}

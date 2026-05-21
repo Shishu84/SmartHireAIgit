@@ -90,7 +90,7 @@ function Pricing() {
 
       },
       theme:{
-        color: "#10b981",
+        color: "#A855F7",
       },
 
       }
@@ -145,8 +145,8 @@ function Pricing() {
               className={`relative rounded-3xl p-8 transition-all duration-300 border cursor-pointer
                 ${isSelected
                   ? plan.id === 'pro'
-                    ? 'border-emerald-500 shadow-2xl shadow-emerald-200/60 dark:shadow-emerald-900/30 bg-white dark:bg-slate-800 ring-2 ring-emerald-400/30 dark:ring-emerald-500/20'
-                    : 'border-emerald-600 shadow-2xl bg-white dark:bg-slate-800'
+                    ? 'border-purple-500 shadow-2xl shadow-purple-200/60 dark:shadow-purple-900/30 bg-white dark:bg-slate-800 ring-2 ring-purple-400/30 dark:ring-purple-500/20'
+                    : 'border-pink-500 shadow-2xl bg-white dark:bg-slate-800'
                   : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md hover:shadow-lg dark:hover:shadow-xl dark:shadow-slate-900/50'
                 }
                 ${plan.default ? 'cursor-default' : ''}
@@ -155,7 +155,7 @@ function Pricing() {
 
               {/* Badge */}
               {plan.badge && (
-                <div className="absolute top-6 right-6 bg-emerald-600 text-white text-xs px-4 py-1 rounded-full shadow">
+                <div className="absolute top-6 right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-4 py-1 rounded-full shadow">
                   {plan.badge}
                 </div>
               )}
@@ -174,7 +174,7 @@ function Pricing() {
 
               {/* Price */}
               <div className="mt-4">
-                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                   {plan.price}
                 </span>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -191,7 +191,7 @@ function Pricing() {
               <div className="mt-6 space-y-3 text-left">
                 {plan.features.map((feature, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <FaCheckCircle className="text-emerald-500 text-sm" />
+                    <FaCheckCircle className="text-purple-500 text-sm" />
                     <span className="text-gray-700 dark:text-gray-300 text-sm">
                       {feature}
                     </span>
@@ -213,8 +213,8 @@ function Pricing() {
                   }}
                   className={`btn-press w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
                     isSelected
-                      ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md'
-                      : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-slate-600'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 shadow-md'
+                      : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-slate-600'
                   }`}
                 >
                   {loadingPlan === plan.id

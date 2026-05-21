@@ -134,13 +134,13 @@ function Navbar() {
                         </button>
                         {showCreditPopup && (
                             <div className='absolute right-0 mt-3 w-64 bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800 rounded-xl p-4 z-50 text-center'>
-                                <div className='bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3'>
+                                <div className='bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3'>
                                     <BsCoin size={24} />
                                 </div>
                                 <p className='text-gray-800 dark:text-gray-100 font-semibold mb-1'>Available Credits</p>
-                                <p className='text-2xl font-bold text-green-600 dark:text-green-400 mb-3'>{userData?.credits || 0}</p>
+                                <p className='text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-3'>{userData?.credits || 0}</p>
                                 <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Need more credits to continue interviews?</p>
-                                <button onClick={() => navigate("/pricing")} className='w-full bg-black dark:bg-emerald-600 text-white py-2 rounded-lg text-sm'>Buy more credits</button>
+                                <button onClick={() => navigate("/pricing")} className='w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition'>Buy more credits</button>
                             </div>
                         )}
                     </div>
@@ -157,7 +157,7 @@ function Navbar() {
                         </button>
                         {showUserPopup && (
                             <div className='absolute right-0 mt-3 w-48 bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800 rounded-xl p-4 z-50'>
-                                <p className='text-sm text-blue-500 dark:text-emerald-400 font-medium mb-2'>{userData?.name}</p>
+                                <p className='text-sm text-blue-500 dark:text-purple-400 font-medium mb-2'>{userData?.name}</p>
                                 <button onClick={() => navigate("/mentor")} className='w-full text-left text-sm py-2 hover:text-black dark:hover:text-white text-gray-600 dark:text-gray-300 flex items-center gap-2'><BsRobot size={14} /> Career Mentor</button>
                                 <button onClick={() => navigate("/history")} className='w-full text-left text-sm py-2 hover:text-black dark:hover:text-white text-gray-600 dark:text-gray-300'>Dashboard Hub</button>
                                 <button onClick={handleLogout} className='w-full text-left text-sm py-2 flex items-center gap-2 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300'>
@@ -211,13 +211,13 @@ function Navbar() {
                         <div className='border-t border-gray-100 dark:border-gray-800 mt-1 pt-2'>
                             {userData ? (
                                 <>
-                                    <p className='text-xs text-gray-400 px-4 mb-1'>Signed in as <span className='text-emerald-500 font-medium'>{userData.name}</span></p>
+                                    <p className='text-xs text-gray-400 px-4 mb-1'>Signed in as <span className='text-purple-500 font-medium'>{userData.name}</span></p>
                                     <button onClick={handleLogout} className='w-full text-left px-4 py-3 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium flex items-center gap-2 transition'>
                                         <HiOutlineLogout size={16} /> Logout
                                     </button>
                                 </>
                             ) : (
-                                <button onClick={() => { setShowAuth(true); setMobileMenuOpen(false); }} className='w-full bg-black dark:bg-emerald-600 text-white py-3 rounded-xl font-medium mt-2'>
+                                <button onClick={() => { setShowAuth(true); setMobileMenuOpen(false); }} className='w-full bg-black dark:bg-purple-600 text-white py-3 rounded-xl font-medium mt-2'>
                                     Sign In
                                 </button>
                             )}

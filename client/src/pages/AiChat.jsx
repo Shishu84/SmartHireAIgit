@@ -154,8 +154,8 @@ const AiChat = () => {
                             <img src={logo} alt="SmartHire.AI Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm bg-white" />
                             <div>
                                 <h2 className="font-semibold text-lg leading-tight text-gray-900 dark:text-white">Career Intelligence Mentor</h2>
-                                <p className="text-xs text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <p className="text-xs text-purple-500 dark:text-purple-400 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></span>
                                     Context-Aware Engine Active
                                 </p>
                             </div>
@@ -189,7 +189,7 @@ const AiChat = () => {
                                         <button 
                                             key={i}
                                             onClick={() => setInput(s)}
-                                            className="text-sm text-left p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-black dark:hover:border-emerald-500 transition-all hover:shadow-sm flex items-start gap-3 group"
+                                            className="text-sm text-left p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-black dark:hover:border-purple-500 transition-all hover:shadow-sm flex items-start gap-3 group"
                                         >
                                             <BsLightbulb className="text-yellow-500 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                                             <span className="text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white">{s}</span>
@@ -208,12 +208,12 @@ const AiChat = () => {
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div className={`flex gap-3 max-w-[85%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-1 overflow-hidden shadow-sm ${msg.role === 'user' ? 'bg-black dark:bg-emerald-600 text-white border border-gray-200 dark:border-gray-700' : 'bg-white'}`}>
+                                        <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-1 overflow-hidden shadow-sm ${msg.role === 'user' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white'}`}>
                                             {msg.role === 'user' ? <BsPerson size={16} /> : <img src={logo} alt="AI" className="w-full h-full object-cover p-1" />}
                                         </div>
                                         <div className={`p-4 rounded-2xl shadow-sm ${
                                             msg.role === 'user' 
-                                            ? 'bg-black dark:bg-emerald-600 text-white rounded-tr-none' 
+                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-tr-none' 
                                             : 'bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-slate-700 rounded-tl-none'
                                         }`}>
                                             <div className="text-sm md:text-md leading-relaxed prose prose-sm max-w-none prose-slate dark:prose-invert">
@@ -278,13 +278,13 @@ const AiChat = () => {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask anything about your career..."
-                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl px-6 py-4 pr-16 focus:border-black dark:focus:border-emerald-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl px-6 py-4 pr-16 focus:border-purple-500 dark:focus:border-purple-500 outline-none transition-all shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                 disabled={isLoading}
                             />
                             <button 
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black dark:bg-emerald-600 text-white p-3 rounded-xl hover:bg-gray-800 dark:hover:bg-emerald-500 disabled:bg-gray-200 dark:disabled:bg-slate-700 transition-all"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-3 rounded-xl hover:opacity-90 disabled:opacity-40 dark:disabled:bg-slate-700 transition-all"
                             >
                                 <BsSend size={20} />
                             </button>

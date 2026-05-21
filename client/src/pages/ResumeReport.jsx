@@ -174,7 +174,7 @@ function ResumeReport() {
                             <p className='text-gray-500 dark:text-gray-400 text-lg'>Deep structural and semantic analysis for <span className="font-semibold text-gray-800 dark:text-gray-200">{resume.role}</span></p>
                         </div>
                     </div>
-                    <button onClick={downloadPDF} className='bg-gray-900 hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium shadow-md transition whitespace-nowrap shrink-0'>
+                    <button onClick={downloadPDF} className='bg-gray-900 hover:bg-black dark:bg-purple-600 dark:hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-medium shadow-md transition whitespace-nowrap shrink-0'>
                         Download Full Report
                     </button>
                 </div>
@@ -262,11 +262,11 @@ function ResumeReport() {
                                 {resume.summary || "The resume shows structural parsing limitations impacting ATS readability."}
                             </p>
                             
-                            <div className={`p-4 rounded-xl border ${status.color === 'red' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50' : status.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50'}`}>
+                            <div className={`p-4 rounded-xl border ${status.color === 'red' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50' : status.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50' : 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50'}`}>
                                 <p className="text-sm font-bold mb-1 flex items-center gap-2">
                                     👉 AI Hiring Simulation Result:
                                 </p>
-                                <p className={`text-sm ${status.color === 'red' ? 'text-red-800 dark:text-red-300' : status.color === 'yellow' ? 'text-yellow-800 dark:text-yellow-300' : 'text-green-800 dark:text-green-300'}`}>
+                                <p className={`text-sm ${status.color === 'red' ? 'text-red-800 dark:text-red-300' : status.color === 'yellow' ? 'text-yellow-800 dark:text-yellow-300' : 'text-purple-800 dark:text-purple-300'}`}>
                                     {status.color === 'red' ? '"This resume would likely NOT pass initial screening for most ATS pipelines. It requires restructuring before being considered for interviews."' :
                                      status.color === 'yellow' ? '"This resume might pass some ATS filters but lacks strong keyword optimization and structural clarity. Human review is unlikely to proceed without improvements."' :
                                      '"Strong candidate profile. High probability of passing ATS automated screening and moving to recruiter review stage."'}
@@ -283,7 +283,7 @@ function ResumeReport() {
                                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <FaBriefcase className="text-blue-500"/> Experience Intelligence
                                     </h3>
-                                    <span className={`text-xs px-2 py-1 rounded-md font-bold ${expScore < 50 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : expScore < 80 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                                    <span className={`text-xs px-2 py-1 rounded-md font-bold ${expScore < 50 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : expScore < 80 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'}`}>
                                         Status: {expScore < 50 ? 'Poor' : expScore < 80 ? 'Average' : 'Good'}
                                     </span>
                                 </div>
@@ -300,7 +300,7 @@ function ResumeReport() {
                                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                         <FaLightbulb className="text-yellow-500"/> Skill Intelligence
                                     </h3>
-                                    <span className={`text-xs px-2 py-1 rounded-md font-bold ${skillScore < 50 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : skillScore < 80 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                                    <span className={`text-xs px-2 py-1 rounded-md font-bold ${skillScore < 50 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : skillScore < 80 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'}`}>
                                         Status: {skillScore < 50 ? 'Insufficient Data' : skillScore < 80 ? 'Moderate' : 'Excellent'}
                                     </span>
                                 </div>
@@ -318,18 +318,18 @@ function ResumeReport() {
 
                         {/* Strengths and Weaknesses */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-900/50">
-                                <h3 className="font-bold text-emerald-800 dark:text-emerald-400 mb-4 flex items-center gap-2">
+                            <div className="bg-purple-50 dark:bg-purple-900/10 p-6 rounded-3xl border border-purple-100 dark:border-purple-900/50">
+                                <h3 className="font-bold text-purple-800 dark:text-purple-400 mb-4 flex items-center gap-2">
                                     <FaCheckCircle/> AI Detected Soft Signals (Strengths)
                                 </h3>
                                 <ul className="space-y-3">
                                     {resume.strengths?.length > 0 ? resume.strengths.map((s, i) => (
-                                        <li key={i} className="text-sm text-emerald-900 dark:text-emerald-200 flex items-start gap-2">
-                                            <span className="text-emerald-500 mt-0.5">✔</span> <span>{s}</span>
+                                        <li key={i} className="text-sm text-purple-900 dark:text-purple-200 flex items-start gap-2">
+                                            <span className="text-purple-500 mt-0.5">✔</span> <span>{s}</span>
                                         </li>
-                                    )) : <li className="text-sm text-emerald-700">No specific strengths parsed.</li>}
+                                    )) : <li className="text-sm text-purple-700">No specific strengths parsed.</li>}
                                 </ul>
-                                <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-4 italic">🧠 AI Insight: These are behavioral and formatting strengths derived from document structure.</p>
+                                <p className="text-xs text-purple-600 dark:text-purple-500 mt-4 italic">🧠 AI Insight: These are behavioral and formatting strengths derived from document structure.</p>
                             </div>
 
                             <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/50">
@@ -362,16 +362,16 @@ function ResumeReport() {
                         </div>
 
                         {/* Final Verdict */}
-                        <div className={`p-6 rounded-3xl border-2 ${status.color === 'red' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50' : status.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50'}`}>
+                        <div className={`p-6 rounded-3xl border-2 ${status.color === 'red' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50' : status.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50' : 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50'}`}>
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2 dark:text-white">📌 Final Verdict</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className={`text-sm font-bold ${status.color === 'red' ? 'text-red-700 dark:text-red-400' : status.color === 'yellow' ? 'text-yellow-700 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}>
+                                    <p className={`text-sm font-bold ${status.color === 'red' ? 'text-red-700 dark:text-red-400' : status.color === 'yellow' ? 'text-yellow-700 dark:text-yellow-400' : 'text-purple-700 dark:text-purple-400'}`}>
                                         {status.color === 'red' ? '❌ Current Status: NOT ATS READY' : status.color === 'yellow' ? '⚠️ Current Status: NEEDS OPTIMIZATION' : '✅ Current Status: ATS READY'}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className={`text-sm ${status.color === 'red' ? 'text-red-800 dark:text-red-300' : status.color === 'yellow' ? 'text-yellow-800 dark:text-yellow-300' : 'text-green-800 dark:text-green-300'}`}>
+                                    <p className={`text-sm ${status.color === 'red' ? 'text-red-800 dark:text-red-300' : status.color === 'yellow' ? 'text-yellow-800 dark:text-yellow-300' : 'text-purple-800 dark:text-purple-300'}`}>
                                         <span className="font-bold">Required Action:</span> {status.color === 'red' ? 'Resume must undergo structural redesign + skill clarity enhancement before applying to competitive roles.' : status.color === 'yellow' ? 'Improve keyword density and formatting layout.' : 'Ready to apply! Keep your projects updated.'}
                                     </p>
                                 </div>

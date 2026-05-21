@@ -142,7 +142,7 @@ function Auth({ isModel = false, onClose }) {
                 )}
 
                 {resetSent && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-3 bg-green-50 border border-green-100 text-green-700 text-xs rounded-xl text-center">
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-3 bg-purple-50 border border-purple-100 text-purple-700 text-xs rounded-xl text-center">
                         Password reset email sent! Check your inbox.
                     </motion.div>
                 )}
@@ -161,7 +161,7 @@ function Auth({ isModel = false, onClose }) {
                                     placeholder="Full Name"
                                     value={nameInput}
                                     onChange={(e) => setNameInput(e.target.value)}
-                                    className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-emerald-500 focus:ring-1 focus:ring-black dark:focus:ring-emerald-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                                    className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-purple-500 focus:ring-1 focus:ring-black dark:focus:ring-purple-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                     required={!isLogin}
                                 />
                             </motion.div>
@@ -175,7 +175,7 @@ function Auth({ isModel = false, onClose }) {
                             placeholder="Email address"
                             value={emailInput}
                             onChange={(e) => setEmailInput(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-emerald-500 focus:ring-1 focus:ring-black dark:focus:ring-emerald-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                            className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-purple-500 focus:ring-1 focus:ring-black dark:focus:ring-purple-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
                             required
                         />
                     </div>
@@ -187,7 +187,7 @@ function Auth({ isModel = false, onClose }) {
                             placeholder="Password"
                             value={passwordInput}
                             onChange={(e) => setPasswordInput(e.target.value)}
-                            className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-12 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-emerald-500 focus:ring-1 focus:ring-black dark:focus:ring-emerald-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                            className="w-full bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-2xl py-3 pl-11 pr-12 text-sm text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-black dark:focus:border-purple-500 focus:ring-1 focus:ring-black dark:focus:ring-purple-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
                             required
                         />
                         <button
@@ -209,7 +209,7 @@ function Auth({ isModel = false, onClose }) {
                     <button
                         type="submit"
                         disabled={loading}
-                        className='w-full py-3.5 mt-2 bg-black dark:bg-emerald-600 text-white rounded-2xl font-medium text-sm hover:bg-gray-800 dark:hover:bg-emerald-500 transition-colors shadow-lg shadow-black/10 dark:shadow-emerald-900/20 disabled:opacity-70 flex items-center justify-center'>
+                        className='w-full py-3.5 mt-2 bg-black dark:bg-purple-600 text-white rounded-2xl font-medium text-sm hover:bg-gray-800 dark:hover:bg-purple-500 transition-colors shadow-lg shadow-black/10 dark:shadow-purple-900/20 disabled:opacity-70 flex items-center justify-center'>
                         {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
                     </button>
                 </form>

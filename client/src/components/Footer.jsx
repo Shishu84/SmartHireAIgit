@@ -24,16 +24,16 @@ function Footer() {
               Practice real scenarios, improve your communication, and build professional confidence.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors" aria-label="Twitter">
+              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors" aria-label="Twitter">
                 <FaTwitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors" aria-label="LinkedIn">
+              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors" aria-label="LinkedIn">
                 <FaLinkedin size={20} />
               </a>
-              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors" aria-label="GitHub">
+              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors" aria-label="GitHub">
                 <FaGithub size={20} />
               </a>
-              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors" aria-label="Instagram">
+              <a href="#" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors" aria-label="Instagram">
                 <FaInstagram size={20} />
               </a>
             </div>
@@ -44,15 +44,15 @@ function Footer() {
             <h3 className="text-gray-900 dark:text-white font-bold mb-6 tracking-wide">Quick Links</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm font-medium">Home</Link>
+                <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors text-sm font-medium">Home</Link>
               </li>
               <li>
-                <Link to="/upload-resume" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm font-medium">Resume Analysis</Link>
+                <Link to="/upload-resume" className="text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors text-sm font-medium">Resume Analysis</Link>
               </li>
               <li>
-                <Link to="/avatar-interview" className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-sm font-bold">
+                <Link to="/avatar-interview" className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-bold">
                   Interview Room
-                  <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] uppercase tracking-wider py-0.5 px-2 rounded-full font-bold">Core Feature</span>
+                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-[10px] uppercase tracking-wider py-0.5 px-2 rounded-full font-bold">Core Feature</span>
                 </Link>
               </li>
             </ul>
@@ -66,7 +66,7 @@ function Footer() {
                 <span className="text-gray-400 dark:text-gray-500 text-sm font-medium cursor-not-allowed" title="Our comprehensive platform guides and APIs are currently in preparation and will be arriving in a future release!">Documentation (Coming in Future)</span>
               </li>
               <li>
-                <Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-sm font-medium">Contact Details</Link>
+                <Link to="/contact" className="text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors text-sm font-medium">Contact Details</Link>
               </li>
             </ul>
           </div>
@@ -84,18 +84,18 @@ function Footer() {
               <input
                 type="email"
                 placeholder="Your email address"
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-black dark:focus:border-emerald-500 focus:ring-1 focus:ring-black dark:focus:ring-emerald-500 transition-shadow text-sm w-full shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-black dark:focus:border-purple-500 focus:ring-1 focus:ring-black dark:focus:ring-purple-500 transition-shadow text-sm w-full shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
               <textarea
                 placeholder="How can we help?"
                 rows="2"
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-black dark:focus:border-emerald-500 focus:ring-1 focus:ring-black dark:focus:ring-emerald-500 transition-shadow text-sm w-full shadow-sm resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-black dark:focus:border-purple-500 focus:ring-1 focus:ring-black dark:focus:ring-purple-500 transition-shadow text-sm w-full shadow-sm resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               ></textarea>
               <button
                 type="submit"
-                className="w-full bg-black dark:bg-emerald-600 text-white font-medium py-2.5 rounded-xl hover:bg-gray-800 dark:hover:bg-emerald-500 transition-colors shadow-sm text-sm"
+                className="w-full bg-black dark:bg-purple-600 text-white font-medium py-2.5 rounded-xl hover:bg-gray-800 dark:hover:bg-purple-500 transition-colors shadow-sm text-sm"
               >
                 Send Message
               </button>
@@ -110,8 +110,8 @@ function Footer() {
             © {new Date().getFullYear()} SmartHire.AI. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link to="/privacy" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors text-sm font-medium">Privacy Policy</Link>
-            <Link to="/terms" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-emerald-400 transition-colors text-sm font-medium">Terms of Service</Link>
+            <Link to="/privacy" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors text-sm font-medium">Privacy Policy</Link>
+            <Link to="/terms" className="text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-purple-400 transition-colors text-sm font-medium">Terms of Service</Link>
           </div>
         </div>
       </div>

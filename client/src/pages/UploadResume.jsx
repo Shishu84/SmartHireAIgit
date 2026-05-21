@@ -112,7 +112,7 @@ function UploadResume() {
         if (!selectedFile) return null;
         if (selectedFile.type.includes('pdf')) return <FaFilePdf className="text-red-500 text-4xl" />;
         if (selectedFile.type.includes('word')) return <FaFileWord className="text-blue-500 text-4xl" />;
-        if (selectedFile.type.includes('image')) return <FaFileImage className="text-green-500 text-4xl" />;
+        if (selectedFile.type.includes('image')) return <FaFileImage className="text-purple-500 text-4xl" />;
         return <FaFilePdf className="text-gray-500 text-4xl" />;
     };
 
@@ -141,8 +141,8 @@ function UploadResume() {
                         <>
                             <div
                                 className={`relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-all duration-300 ${dragActive
-                                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                                    : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500 bg-gray-50 dark:bg-slate-700/30'
+                                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                                    : 'border-gray-300 dark:border-slate-600 hover:border-purple-400 dark:hover:border-purple-500 bg-gray-50 dark:bg-slate-700/30'
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
@@ -161,7 +161,7 @@ function UploadResume() {
                                 {!selectedFile ? (
                                     <>
                                         <div className='bg-white dark:bg-gray-800 p-4 rounded-full shadow-sm mb-4'>
-                                            <FaCloudUploadAlt className='text-emerald-500 text-4xl' />
+                                            <FaCloudUploadAlt className='text-purple-500 text-4xl' />
                                         </div>
                                         <p className='text-gray-700 dark:text-gray-200 font-semibold mb-2'>
                                             Drag & drop your resume here
@@ -173,7 +173,7 @@ function UploadResume() {
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => inputRef.current.click()}
-                                            className='btn-press bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium transition'
+                                            className='btn-press bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition'
                                         >
                                             Browse Files
                                         </motion.button>
@@ -193,7 +193,7 @@ function UploadResume() {
                                             </button>
                                             <button
                                                 onClick={handleUpload}
-                                                className='bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl transition font-medium'
+                                                className='bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white px-6 py-2 rounded-xl transition font-medium'
                                             >
                                                 Analyze Resume
                                             </button>
@@ -215,9 +215,9 @@ function UploadResume() {
                         <div className='py-12 flex flex-col items-center'>
                             <div className='relative w-24 h-24 mb-6 flex items-center justify-center'>
                                 {uploadProgress < 100 ? (
-                                    <FaSpinner className='text-emerald-500 text-5xl animate-spin' />
+                                    <FaSpinner className='text-purple-500 text-5xl animate-spin' />
                                 ) : (
-                                    <FaCheckCircle className='text-emerald-500 text-6xl' />
+                                    <FaCheckCircle className='text-purple-500 text-6xl' />
                                 )}
                             </div>
                             <h3 className='text-xl font-bold text-gray-800 dark:text-gray-100 mb-2'>
@@ -229,7 +229,7 @@ function UploadResume() {
 
                             <div className='w-full max-w-md bg-gray-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden'>
                                 <motion.div
-                                    className='bg-emerald-500 h-full'
+                                    className='bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full'
                                     initial={{ width: 0 }}
                                     animate={{ width: `${uploadProgress}%` }}
                                     transition={{ duration: 0.5 }}
@@ -249,13 +249,13 @@ function UploadResume() {
                     className='mt-8 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 p-8'
                 >
                     {/* Sign-in Banner */}
-                    <div className='flex items-start gap-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-4 mb-8'>
-                        <FaLock className='text-emerald-600 dark:text-emerald-400 text-xl mt-0.5 shrink-0' />
+                    <div className='flex items-start gap-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-2xl p-4 mb-8'>
+                        <FaLock className='text-purple-600 dark:text-purple-400 text-xl mt-0.5 shrink-0' />
                         <div>
-                            <p className='font-semibold text-emerald-800 dark:text-emerald-300 text-sm'>Sign in to save this report</p>
-                            <p className='text-emerald-700 dark:text-emerald-400 text-xs mt-1'>Create a free account to permanently save this analysis, track history, and access the full ATS diagnostics report.</p>
+                            <p className='font-semibold text-purple-800 dark:text-purple-300 text-sm'>Sign in to save this report</p>
+                            <p className='text-purple-700 dark:text-purple-400 text-xs mt-1'>Create a free account to permanently save this analysis, track history, and access the full ATS diagnostics report.</p>
                         </div>
-                        <button onClick={() => navigate('/')} className='ml-auto shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-xl font-medium transition'>
+                        <button onClick={() => navigate('/')} className='ml-auto shrink-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white text-xs px-4 py-2 rounded-xl font-medium transition'>
                             Sign In Free
                         </button>
                     </div>
@@ -265,7 +265,7 @@ function UploadResume() {
                     {/* Score + Role */}
                     <div className='flex flex-col sm:flex-row items-center gap-6 mb-8'>
                         <div className={`w-28 h-28 shrink-0 flex items-center justify-center rounded-full border-8 font-bold text-3xl
-                                ${guestResult.atsScore >= 75 ? 'border-green-500 text-green-600 dark:text-green-400'
+                                ${guestResult.atsScore >= 75 ? 'border-purple-500 text-purple-600 dark:text-purple-400'
                                 : guestResult.atsScore >= 50 ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
                                     : 'border-red-500 text-red-600 dark:text-red-400'}`}>
                             {guestResult.atsScore}%
@@ -274,7 +274,7 @@ function UploadResume() {
                             <p className='text-sm text-gray-500 dark:text-gray-400 mb-1'>Detected Role</p>
                             <p className='text-xl font-bold text-gray-800 dark:text-white'>{guestResult.role}</p>
                             <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>Experience: <span className='font-medium text-gray-700 dark:text-gray-300'>{guestResult.experience}</span></p>
-                            <span className='inline-block mt-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-semibold rounded-full'>Best Fit: {guestResult.bestRole}</span>
+                            <span className='inline-block mt-2 px-3 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-semibold rounded-full'>Best Fit: {guestResult.bestRole}</span>
                         </div>
                     </div>
 
@@ -288,11 +288,11 @@ function UploadResume() {
 
                     {/* Strengths & Weaknesses */}
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6'>
-                        <div className='bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800/50'>
-                            <p className='text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-3'>✅ Strengths</p>
+                        <div className='bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800/50'>
+                            <p className='text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-3'>✅ Strengths</p>
                             <ul className='space-y-1.5'>
                                 {(guestResult.strengths || []).map((s, i) => (
-                                    <li key={i} className='text-xs text-emerald-800 dark:text-emerald-300 flex gap-2'><span>•</span><span>{s}</span></li>
+                                    <li key={i} className='text-xs text-purple-800 dark:text-purple-300 flex gap-2'><span>•</span><span>{s}</span></li>
                                 ))}
                             </ul>
                         </div>
@@ -322,7 +322,7 @@ function UploadResume() {
                         <button onClick={() => { setGuestResult(null); }} className='flex-1 py-3 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 font-medium transition text-sm'>
                             Analyze Another Resume
                         </button>
-                        <button onClick={() => navigate('/')} className='flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition text-sm'>
+                        <button onClick={() => navigate('/')} className='flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white font-medium transition text-sm'>
                             Sign In to Save Full Report
                         </button>
                     </div>
@@ -345,7 +345,7 @@ function UploadResume() {
                     <p className='text-sm text-gray-500 dark:text-gray-400'>Identify exact missing keywords for your target role description.</p>
                 </div>
                 <div className='bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center text-center'>
-                    <div className='bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 w-12 h-12 rounded-full flex items-center justify-center mb-4'>
+                    <div className='bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 w-12 h-12 rounded-full flex items-center justify-center mb-4'>
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     </div>
                     <h4 className='font-bold text-gray-800 dark:text-gray-100 mb-2'>Formatting Review</h4>

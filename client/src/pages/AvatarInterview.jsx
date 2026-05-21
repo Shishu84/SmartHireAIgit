@@ -393,13 +393,13 @@ function AvatarInterviewComponent() {
         {/* ── PATH A: Resume Upload ───────────────────────────────────────── */}
         <div className={`mb-4 rounded-2xl border p-4 transition-all duration-300 ${
           isResumeReady
-            ? 'border-green-400/60 bg-green-500/10'
+            ? 'border-purple-400/60 bg-purple-500/10'
             : 'border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/5 shadow-sm'
         }`}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                isResumeReady ? 'bg-green-500 text-gray-900 dark:text-white' : 'bg-white/20 text-gray-500 dark:text-white/60'
+                isResumeReady ? 'bg-purple-500 text-gray-900 dark:text-white' : 'bg-white/20 text-gray-500 dark:text-white/60'
               }`}>
                 {isResumeReady ? <FaCheck size={10} /> : 'A'}
               </div>
@@ -408,7 +408,7 @@ function AvatarInterviewComponent() {
               </span>
             </div>
             {isResumeReady && (
-              <span className="text-xs font-bold text-green-400 bg-green-400/15 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-purple-400 bg-purple-400/15 px-2 py-0.5 rounded-full">
                 {'✓ Ready'}
               </span>
             )}
@@ -425,7 +425,7 @@ function AvatarInterviewComponent() {
             />
             <div className={`w-full border border-dashed rounded-xl px-4 py-4 flex items-center justify-center gap-3 transition-all ${
               isResumeReady
-                ? 'border-green-400/50 bg-green-500/10 text-green-400'
+                ? 'border-purple-400/50 bg-purple-500/10 text-purple-400'
                 : 'border-gray-200 dark:border-white/20 text-gray-600 dark:text-white/70 group-hover:border-purple-400 group-hover:bg-white dark:bg-white/10 shadow-sm'
             }`}>
               {isUploading ? (
@@ -456,7 +456,7 @@ function AvatarInterviewComponent() {
           </AnimatePresence>
 
           {isResumeReady && role && (
-            <p className="text-green-400/80 text-xs mt-2 text-center">
+            <p className="text-purple-400/80 text-xs mt-2 text-center">
               {`✓ Parsed: ${role} · ${experience}`}
             </p>
           )}
@@ -580,7 +580,7 @@ function AvatarInterviewComponent() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-slate-100 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 transition-colors duration-300 flex items-center justify-center p-4">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="text-center text-gray-900 dark:text-white max-w-md w-full">
-        <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
         <h2 className="text-3xl font-bold mb-3">{'Interview Complete!'}</h2>
         <p className="text-gray-500 dark:text-white/60 mb-8">
           {'Great job! You answered all questions.'}
@@ -615,7 +615,7 @@ function AvatarInterviewComponent() {
               className="w-full h-auto object-cover" />
             {isAISpeaking && (
               <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-black/60 backdrop-blur px-3 py-1.5 rounded-full">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
                 <span className="text-gray-900 dark:text-white text-xs font-medium">{'AI Speaking'}</span>
               </div>
             )}
@@ -649,7 +649,7 @@ function AvatarInterviewComponent() {
             </div>
             <div className="flex gap-1.5 mr-2">
               {[...Array(3)].map((_, i) => (
-                <span key={i} className="w-2 h-2 bg-green-400 rounded-full animate-ping" style={{ animationDelay: `${i * 0.2}s`, animationDuration: '1.5s' }} />
+                <span key={i} className="w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: `${i * 0.2}s`, animationDuration: '1.5s' }} />
               ))}
             </div>
           </div>
@@ -663,7 +663,7 @@ function AvatarInterviewComponent() {
               <h2 className="text-gray-900 dark:text-white font-bold text-lg">SmartHireAI Avatar Interview</h2>
               <p className="text-gray-400 dark:text-white/40 text-sm">{role} · {experience}</p>
             </div>
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+            <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse" />
           </div>
 
           {/* Current Question */}
@@ -741,8 +741,8 @@ function AvatarInterviewComponent() {
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-green-400/20 rounded-2xl p-5">
-              <p className="text-xs text-green-400 uppercase tracking-wider font-semibold mb-2">
+              className="bg-white/60 dark:bg-white/5 shadow-sm backdrop-blur border border-purple-400/20 rounded-2xl p-5">
+              <p className="text-xs text-purple-400 uppercase tracking-wider font-semibold mb-2">
                 {'AI Feedback'}
               </p>
               <p className="text-white/80 text-sm leading-relaxed mb-4">{avatarReply}</p>

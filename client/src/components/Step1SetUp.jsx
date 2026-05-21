@@ -101,7 +101,7 @@ function Step1SetUp({ onStart }) {
                     initial={{ x: -80, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.7 }}
-                    className='relative bg-gradient-to-br from-green-50 to-green-100 dark:from-slate-800 dark:to-slate-700 p-12 flex flex-col justify-center transition-colors duration-300'>
+                    className='relative bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 p-12 flex flex-col justify-center transition-colors duration-300'>
 
                     <h2 className="text-4xl font-bold text-gray-800 dark:text-white mb-6">
                         Start Your AI Interview
@@ -114,9 +114,9 @@ function Step1SetUp({ onStart }) {
 
                     <div className='space-y-5'>
                         {[
-                            { icon: <FaUserTie className="text-green-600 dark:text-green-400 text-xl" />, text: "Choose Role & Experience" },
-                            { icon: <FaMicrophoneAlt className="text-green-600 dark:text-green-400 text-xl" />, text: "Smart Voice Interview" },
-                            { icon: <FaChartLine className="text-green-600 dark:text-green-400 text-xl" />, text: "Performance Analytics" },
+                            { icon: <FaUserTie className="text-purple-600 dark:text-purple-400 text-xl" />, text: "Choose Role & Experience" },
+                            { icon: <FaMicrophoneAlt className="text-purple-600 dark:text-purple-400 text-xl" />, text: "Smart Voice Interview" },
+                            { icon: <FaChartLine className="text-purple-600 dark:text-purple-400 text-xl" />, text: "Performance Analytics" },
                         ].map((item, index) => (
                             <motion.div key={index}
                                 initial={{ y: 30, opacity: 0 }}
@@ -154,7 +154,7 @@ function Step1SetUp({ onStart }) {
                         <div className='relative'>
                             <FaUserTie className='absolute top-4 left-4 text-gray-400 dark:text-gray-500' />
                             <input type='text' id='role' name='role' placeholder='Enter role'
-                                className='w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
+                                className='w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
                                 onChange={(e) => setRole(e.target.value)} value={role} />
                         </div>
 
@@ -162,14 +162,14 @@ function Step1SetUp({ onStart }) {
                         <div className='relative'>
                             <FaBriefcase className='absolute top-4 left-4 text-gray-400 dark:text-gray-500' />
                             <input type='text' id='experience' name='experience' placeholder='Experience (e.g. 2 years)'
-                                className='w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
+                                className='w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
                                 onChange={(e) => setExperience(e.target.value)} value={experience} />
                         </div>
 
                         {/* Mode Select */}
                         <select id='mode' name='mode' value={mode}
                             onChange={(e) => setMode(e.target.value)}
-                            className='w-full py-3 px-4 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white'>
+                            className='w-full py-3 px-4 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-white dark:bg-slate-700 text-gray-900 dark:text-white'>
                             <option value="Technical" className='dark:bg-slate-700'>Technical Interview</option>
                             <option value="HR" className='dark:bg-slate-700'>HR Interview</option>
                         </select>
@@ -179,9 +179,9 @@ function Step1SetUp({ onStart }) {
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
                                 onClick={() => document.getElementById("resumeUpload").click()}
-                                className='border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-200'>
+                                className='border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200'>
 
-                                <FaFileUpload className='text-4xl mx-auto text-green-600 dark:text-green-400 mb-3' />
+                                <FaFileUpload className='text-4xl mx-auto text-purple-600 dark:text-purple-400 mb-3' />
 
                                 <input type="file"
                                     accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
@@ -230,7 +230,7 @@ function Step1SetUp({ onStart }) {
                                         {/* ATS Score */}
                                         <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-600">
                                             <div className={`w-16 h-16 flex items-center justify-center rounded-full border-4 font-bold text-xl
-                                                ${atsData.atsScore >= 75 ? 'border-green-500 text-green-600 dark:text-green-400'
+                                                ${atsData.atsScore >= 75 ? 'border-purple-500 text-purple-600 dark:text-purple-400'
                                                 : atsData.atsScore >= 50 ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
                                                 : 'border-red-500 text-red-600 dark:text-red-400'}`}>
                                                 {atsData.atsScore}%
@@ -249,9 +249,9 @@ function Step1SetUp({ onStart }) {
                                         )}
 
                                         {atsData.bestRole && (
-                                            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-4 rounded-xl shadow-sm">
-                                                <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-1 uppercase tracking-wide">Best Job Role Match</h4>
-                                                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{atsData.bestRole}</p>
+                                            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 p-4 rounded-xl shadow-sm">
+                                                <h4 className="text-sm font-bold text-purple-800 dark:text-purple-300 mb-1 uppercase tracking-wide">Best Job Role Match</h4>
+                                                <p className="text-sm font-semibold text-purple-700 dark:text-purple-400">{atsData.bestRole}</p>
                                             </div>
                                         )}
 
@@ -278,7 +278,7 @@ function Step1SetUp({ onStart }) {
                                         <p className='font-bold text-gray-800 dark:text-gray-100 mb-2 uppercase tracking-wide text-sm'>Extracted Skills</p>
                                         <div className='flex flex-wrap gap-2'>
                                             {skills.map((s, i) => (
-                                                <span key={i} className='bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-semibold shadow-sm'>{s}</span>
+                                                <span key={i} className='bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-400 px-3 py-1 rounded-full text-xs font-semibold shadow-sm'>{s}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -319,7 +319,7 @@ function Step1SetUp({ onStart }) {
                             disabled={!role || !experience || loading}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
-                            className='w-full disabled:bg-gray-400 dark:disabled:bg-slate-600 bg-green-600 hover:bg-green-700 text-white py-3 rounded-full text-lg font-semibold transition duration-300 shadow-md'>
+                            className='w-full disabled:bg-gray-400 dark:disabled:bg-slate-600 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white py-3 rounded-full text-lg font-semibold transition duration-300 shadow-md shadow-purple-200 dark:shadow-purple-900/30'>
                             {loading ? "Starting..." : "Start Interview"}
                         </motion.button>
                     </div>

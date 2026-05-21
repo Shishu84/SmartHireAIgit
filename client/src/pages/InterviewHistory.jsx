@@ -303,7 +303,7 @@ function InterviewHistory() {
             return (
                 <div className="bg-white dark:bg-gray-800 p-10 rounded-2xl shadow text-center text-gray-500 dark:text-gray-400">
                     <p>No interviews available to analyze yet.</p>
-                    <button onClick={() => navigate("/avatar-interview")} className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-full">Start your first mock interview!</button>
+                    <button onClick={() => navigate("/avatar-interview")} className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold">Start your first mock interview!</button>
                 </div>
             );
         }
@@ -321,15 +321,15 @@ function InterviewHistory() {
                         <AreaChart data={chartData}>
                             <defs>
                                 <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor="#A855F7" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#EC4899" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
                             <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
                             <YAxis domain={[0, 10]} stroke="#9ca3af" fontSize={12} />
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#4b5563" strokeOpacity={0.2} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} itemStyle={{ color: '#10b981' }} />
-                            <Area type="monotone" dataKey="score" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" name="Overall Score" />
+                            <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} itemStyle={{ color: '#A855F7' }} />
+                            <Area type="monotone" dataKey="score" stroke="#A855F7" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" name="Overall Score" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
@@ -344,9 +344,9 @@ function InterviewHistory() {
             {notification && (
                 <div className={`fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl shadow-lg border flex items-center gap-3 transition-all duration-300 animate-slide-in
                     ${notification.type === 'success' 
-                        ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
+                        ? 'bg-purple-50 dark:bg-purple-950/80 border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-300' 
                         : 'bg-red-50 dark:bg-red-950/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'}`}>
-                    {notification.type === 'success' ? <FaCheck className="text-emerald-500" /> : <FaTimes className="text-red-500" />}
+                    {notification.type === 'success' ? <FaCheck className="text-purple-500" /> : <FaTimes className="text-red-500" />}
                     <span className="text-sm font-semibold">{notification.message}</span>
                 </div>
             )}
@@ -374,7 +374,7 @@ function InterviewHistory() {
                             { id: 'profile', icon: <FaUserEdit />, label: 'My Profile' }
                         ].map(tab => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 p-4 rounded-xl font-semibold transition ${activeTab === tab.id ? 'bg-emerald-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-slate-700/50 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-slate-700'}`}>
+                                className={`flex items-center gap-3 p-4 rounded-xl font-semibold transition ${activeTab === tab.id ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-slate-700/50 text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-slate-700'}`}>
                                 {tab.icon} {tab.label}
                             </button>
                         ))}
@@ -393,7 +393,7 @@ function InterviewHistory() {
                                                 type="checkbox" 
                                                 checked={selectedInterviews.length === interviews.length}
                                                 onChange={selectAllInterviews}
-                                                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                                             />
                                             <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Select All ({selectedInterviews.length})</span>
                                         </div>
@@ -410,23 +410,23 @@ function InterviewHistory() {
 
                                 {isLoading ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
-                                        <FaSpinner className="animate-spin text-3xl text-emerald-500" />
+                                        <FaSpinner className="animate-spin text-3xl text-purple-500" />
                                         <p className="font-medium">Loading your interviews...</p>
                                     </div>
                                 ) : interviews.length === 0 ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400">
                                         <p>No interviews found.</p>
-                                        <button onClick={() => navigate("/avatar-interview")} className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition">Start your first interview!</button>
+                                        <button onClick={() => navigate("/avatar-interview")} className="mt-4 px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl font-medium transition">Start your first interview!</button>
                                     </div>
                                 ) : (
                                     interviews.map((item, index) => (
-                                        <div key={item._id || index} className="group relative bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div key={item._id || index} className="group relative bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800/50 transition flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                             <div className="flex items-start gap-3">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedInterviews.includes(item._id)}
                                                     onChange={() => toggleInterviewSelection(item._id)}
-                                                    className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 mt-1.5 shrink-0"
+                                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-1.5 shrink-0"
                                                 />
                                                 <div>
                                                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{item.role}</h3>
@@ -437,7 +437,7 @@ function InterviewHistory() {
 
                                             <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-0 border-gray-100 dark:border-slate-700 pt-4 md:pt-0">
                                                 <div className="text-right hidden sm:block">
-                                                    <p className="text-xl font-bold text-emerald-600">{item.finalScore || 0}/10</p>
+                                                    <p className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{item.finalScore || 0}/10</p>
                                                     <p className="text-xs text-gray-400">Overall Score</p>
                                                 </div>
                                                 
@@ -451,7 +451,7 @@ function InterviewHistory() {
                                                     </button>
                                                     <button 
                                                         onClick={() => handleDownloadPDF(item, 'interview')}
-                                                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-100 dark:border-emerald-900/30"
+                                                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/30 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-400 rounded-xl text-xs font-semibold transition border border-purple-100 dark:border-purple-900/30"
                                                         title="Download PDF"
                                                     >
                                                         <FaDownload /> Download
@@ -481,7 +481,7 @@ function InterviewHistory() {
                                                 type="checkbox" 
                                                 checked={selectedResumes.length === resumes.length}
                                                 onChange={selectAllResumes}
-                                                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                                             />
                                             <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Select All ({selectedResumes.length})</span>
                                         </div>
@@ -498,23 +498,23 @@ function InterviewHistory() {
 
                                 {isLoading ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400 flex flex-col items-center gap-3">
-                                        <FaSpinner className="animate-spin text-3xl text-emerald-500" />
+                                        <FaSpinner className="animate-spin text-3xl text-purple-500" />
                                         <p className="font-medium">Loading your resume reports...</p>
                                     </div>
                                 ) : resumes.length === 0 ? (
                                     <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl border border-gray-200 dark:border-slate-700 shadow-sm text-center text-gray-500 dark:text-gray-400">
                                         <p>No resumes uploaded yet.</p>
-                                        <button onClick={() => navigate("/upload-resume")} className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition">Upload Resume Analysis</button>
+                                        <button onClick={() => navigate("/upload-resume")} className="mt-4 px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl font-medium transition">Upload Resume Analysis</button>
                                     </div>
                                 ) : (
                                     resumes.map((resume, index) => (
-                                        <div key={resume._id || index} className="group relative bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div key={resume._id || index} className="group relative bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800/50 transition flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                             <div className="flex items-start gap-3">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={selectedResumes.includes(resume._id)}
                                                     onChange={() => toggleResumeSelection(resume._id)}
-                                                    className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 mt-1.5 shrink-0"
+                                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-1.5 shrink-0"
                                                 />
                                                 <div>
                                                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{resume.role} Resume</h3>
@@ -526,7 +526,7 @@ function InterviewHistory() {
                                             <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-0 border-gray-100 dark:border-slate-700 pt-4 md:pt-0">
                                                 <div className="text-right hidden sm:block">
                                                     <p className="text-xs text-gray-400 mb-1">ATS Score</p>
-                                                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border-4 font-bold text-sm ${resume.atsScore >= 75 ? 'border-green-500 text-green-600 dark:text-green-400' : resume.atsScore >= 50 ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-red-500 text-red-600 dark:text-red-400'}`}>
+                                                    <div className={`w-12 h-12 flex items-center justify-center rounded-full border-4 font-bold text-sm ${resume.atsScore >= 75 ? 'border-purple-500 text-purple-600 dark:text-purple-400' : resume.atsScore >= 50 ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-red-500 text-red-600 dark:text-red-400'}`}>
                                                         {resume.atsScore}%
                                                     </div>
                                                 </div>
@@ -541,7 +541,7 @@ function InterviewHistory() {
                                                     </button>
                                                     <button 
                                                         onClick={() => handleDownloadPDF(resume, 'resume')}
-                                                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-100 dark:border-emerald-900/30"
+                                                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/30 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-400 rounded-xl text-xs font-semibold transition border border-purple-100 dark:border-purple-900/30"
                                                         title="Download PDF"
                                                     >
                                                         <FaDownload /> Download
@@ -571,21 +571,21 @@ function InterviewHistory() {
                                 <div className="space-y-5">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience Level</label>
-                                        <input type="text" value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="e.g. 5 years" />
+                                        <input type="text" value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="e.g. 5 years" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">LinkedIn URL</label>
-                                        <input type="text" value={formData.linkedin} onChange={(e) => setFormData({...formData, linkedin: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://linkedin.com/in/..." />
+                                        <input type="text" value={formData.linkedin} onChange={(e) => setFormData({...formData, linkedin: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://linkedin.com/in/..." />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GitHub URL</label>
-                                        <input type="text" value={formData.github} onChange={(e) => setFormData({...formData, github: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://github.com/..." />
+                                        <input type="text" value={formData.github} onChange={(e) => setFormData({...formData, github: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://github.com/..." />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Portfolio Website</label>
-                                        <input type="text" value={formData.portfolio} onChange={(e) => setFormData({...formData, portfolio: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://myportfolio.com" />
+                                        <input type="text" value={formData.portfolio} onChange={(e) => setFormData({...formData, portfolio: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition bg-transparent dark:text-white dark:placeholder-gray-500" placeholder="https://myportfolio.com" />
                                     </div>
-                                    <button type="submit" className="w-full bg-gray-900 hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold transition mt-6 shadow-md">
+                                    <button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white py-3.5 rounded-xl font-bold transition mt-6 shadow-md">
                                         Save Profile Details
                                     </button>
                                 </div>

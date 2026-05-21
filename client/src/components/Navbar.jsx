@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from "motion/react"
-import { BsRobot, BsCoin, BsList, BsX, BsSun, BsMoon, BsDisplay } from "react-icons/bs";
+import { BsRobot, BsCoin, BsList, BsX } from "react-icons/bs";
 import { HiOutlineLogout } from "react-icons/hi";
 import { FaUserAstronaut } from "react-icons/fa";
+import { Sun, Moon } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ServerUrl } from '../App';
 import { setUserData } from '../redux/userSlice';
 import AuthModel from './AuthModel';
 import { useTheme } from '../context/ThemeContext';
+import logo from '../assets/logo.png';
 
 function Navbar() {
     const { userData } = useSelector((state) => state.user)
@@ -69,8 +71,8 @@ function Navbar() {
                     }`}>
 
                 <div onClick={() => navigate("/")} className='flex items-center gap-3 cursor-pointer text-gray-900 dark:text-white group'>
-                    <div className='bg-black text-white p-2 rounded-lg transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3'>
-                        <BsRobot size={18} />
+                    <div className='transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3'>
+                        <img src={logo} alt="SmartHireAI Logo" className="w-8 h-8 rounded-lg object-cover" />
                     </div>
                     <h1 className='font-semibold text-lg tracking-tight'>SmartHire.AI</h1>
                 </div>
@@ -107,28 +109,20 @@ function Navbar() {
                     <button onClick={() => navigate("/contact")} className='nav-link text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium transition text-sm'>Contact</button>
 
                     {/* Theme Toggle */}
-                    <div className='relative'>
-                        <button onClick={() => {
-                            setShowThemePopup(!showThemePopup);
-                            setShowCreditPopup(false);
-                            setShowUserPopup(false);
-                        }} className='flex items-center justify-center w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full transition text-gray-600 dark:text-gray-300'>
-                            {theme === 'light' ? <BsSun size={16} /> : theme === 'dark' ? <BsMoon size={16} /> : <BsDisplay size={16} />}
-                        </button>
-                        {showThemePopup && (
-                            <div className='absolute right-0 mt-3 w-40 bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800 rounded-xl p-2 z-50 flex flex-col gap-1'>
-                                <button onClick={() => { setTheme('light'); setShowThemePopup(false); }} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${theme==='light' ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                                    <BsSun size={14} /> Light
-                                </button>
-                                <button onClick={() => { setTheme('dark'); setShowThemePopup(false); }} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${theme==='dark' ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                                    <BsMoon size={14} /> Dark
-                                </button>
-                                <button onClick={() => { setTheme('system'); setShowThemePopup(false); }} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${theme==='system' ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
-                                    <BsDisplay size={14} /> Auto
-                                </button>
-                            </div>
+                    <button 
+                        onClick={() => {
+                            const isDark = document.documentElement.classList.contains('dark');
+                            setTheme(isDark ? 'light' : 'dark');
+                        }} 
+                        className='flex items-center justify-center w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-600 dark:text-gray-300'
+                        aria-label="Toggle Theme"
+                    >
+                        {theme === 'dark' || (theme === 'system' && document.documentElement.classList.contains('dark')) ? (
+                            <Sun size={18} className="animate-fade-in" />
+                        ) : (
+                            <Moon size={18} className="animate-fade-in" />
                         )}
-                    </div>
+                    </button>
 
                     {/* Credits */}
                     <div className='relative'>

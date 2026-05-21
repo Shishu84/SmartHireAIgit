@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/img1.png" />
+    <link rel="icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>SmartHireAI</title>
@@ -11,14 +11,31 @@
     <!-- Open Graph -->
     <meta property="og:title" content="SmartHireAI" />
     <meta property="og:description" content="AI-powered hiring platform" />
-    <meta property="og:image" content="/img1.png" />
+    <meta property="og:image" content="/favicon.png" />
     <meta property="og:type" content="website" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="SmartHireAI" />
     <meta name="twitter:description" content="AI-powered hiring platform" />
-    <meta name="twitter:image" content="/img1.png" />
+    <meta name="twitter:image" content="/favicon.png" />
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

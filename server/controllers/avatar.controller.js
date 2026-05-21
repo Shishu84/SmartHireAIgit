@@ -9,60 +9,22 @@ import { Jimp } from "jimp";
 import { askAi } from "../services/openRouter.service.js"
 import Interview from "../models/interview.model.js"
 
-// ─── Google Translate (free/unofficial endpoint) ─────────────────────────────
-async function translateText(text, targetLang) {
-  try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
-    const response = await axios.get(url)
-    const translated = response.data[0].map(item => item[0]).join("")
-    return translated || text
-  } catch (err) {
-    console.error("Translation error:", err.message)
-    return text // fallback: return original
-  }
-}
-
 // ─── HTTP Routes ──────────────────────────────────────────────────────────────
 
 /**
- * POST /api/avatar/translate
- * Body: { text: "...", language: "hi" }
- */
-export const translateAvatarText = async (req, res) => {
-  try {
-    const { text, language } = req.body
-    if (!text || !language) return res.status(400).json({ message: "Text and language required" })
-
-    // If English to English, just return
-    if (language === 'en') return res.status(200).json({ translated: text })
-
-    const translatedText = await translateText(text, language)
-    return res.status(200).json({ translated: translatedText })
-  } catch (error) {
-    return res.status(500).json({ message: "Translation failed" })
-  }
-}
-
-/**
  * POST /api/avatar/ai-respond
- * Body: { transcript, language, questionContext, role, experience }
+ * Body: { transcript, questionContext, role, experience }
  */
 export const getAvatarAIResponse = async (req, res) => {
   try {
-    const { transcript, language, questionContext, role, experience } = req.body
-
-    // 1. If Hindi, translate candidate's answer to English for AI
-    let englishTranscript = transcript
-    if (language === 'hi') {
-      englishTranscript = await translateText(transcript, 'en')
-    }
+    const { transcript, questionContext, role, experience } = req.body
 
     const messages = [
       {
         role: "system",
         content: `You are an expert AI Technical Recruiter conducting an interview for a ${role} with ${experience} experience.
 The candidate was just asked: "${questionContext}".
-Here is their answer: "${englishTranscript}".
+Here is their answer: "${transcript}".
 
 Your goal:
 1. Provide very brief, human-like feedback on their answer.
@@ -72,14 +34,7 @@ Your goal:
     ]
 
     const aiResponse = await askAi(messages)
-    let finalResponse = aiResponse
-
-    // 2. If interview is in Hindi, translate AI response to Hindi
-    if (language === 'hi') {
-      finalResponse = await translateText(finalResponse, 'hi')
-    }
-
-    return res.status(200).json({ response: finalResponse })
+    return res.status(200).json({ response: aiResponse })
 
   } catch (error) {
     console.error("Avatar AI Error:", error)
@@ -89,11 +44,11 @@ Your goal:
 
 /**
  * POST /api/avatar/save-interview
- * Body: { qaHistory, role, experience, language }
+ * Body: { qaHistory, role, experience }
  */
 export const saveAvatarInterview = async (req, res) => {
   try {
-    const { qaHistory, role, experience, language } = req.body
+    const { qaHistory, role, experience } = req.body
     if (!qaHistory || qaHistory.length === 0) {
       return res.status(400).json({ message: "Interview data is empty" })
     }
@@ -389,26 +344,20 @@ export function registerAvatarSocket(namespace) {
       transcript: [] // Array of { question, answer }
     };
 
-    // Client sends a transcribed answer and language preference
-    socket.on("candidate:answer", async ({ transcript, language, questionContext, role, experience }) => {
+    // Client sends a transcribed answer
+    socket.on("candidate:answer", async ({ transcript, questionContext, role, experience }) => {
       if (!transcript?.trim()) return
 
       try {
-        const langLabel = language === "hi" ? "Hindi" : "English"
-
-        // Step 1: If candidate spoke in Hindi, translate to English for AI processing
-        let processedTranscript = transcript
-        if (language === "hi") {
-          processedTranscript = await translateText(transcript, "en")
-          socket.emit("avatar:translated_transcript", { english: processedTranscript })
-        }
-
         // Store in session history
         sessionState.questionCount += 1;
-        sessionState.transcript.push({ question: questionContext, answer: processedTranscript });
+        sessionState.transcript.push({ question: questionContext, answer: transcript });
 
-        const isLastQuestion = sessionState.questionCount >= 8;
-        const minReached = sessionState.questionCount >= 4;
+        const minQuestions = 5;
+        const maxQuestions = 15;
+        const qCount = sessionState.questionCount;
+        const isLastQuestion = qCount >= maxQuestions;
+        const minReached = qCount >= minQuestions;
 
         // Build conversation transcript for AI context
         const conversationHistory = sessionState.transcript
@@ -419,27 +368,41 @@ export function registerAvatarSocket(namespace) {
         const messages = [
           {
             role: "system",
-            content: `You are a professional AI interviewer conducting a ${role || "Software Engineer"} interview for a candidate with ${experience || "some"} experience.
+            content: `You are an expert AI Technical Recruiter conducting an adaptive interview for a ${role || "Software Engineer"} with ${experience || "some"} experience.
 
-You have two tasks:
-1. Give brief, constructive feedback on the candidate's latest answer in 1-2 sentences. Be warm, professional, and specific.
-2. Decide what happens next.
+Your goal is to conduct a realistic, balanced, and professional interview. You must evaluate the candidate across these REQUIRED areas:
+1. Introduction & Background
+2. Core Technical Knowledge
+3. Problem Solving & Scenarios
+4. Project Experience
+5. Communication & Culture Fit
 
-${isLastQuestion ? "- This is the FINAL question. Set isFinished to true." : minReached ? "- You have asked enough questions to evaluate the candidate. You MAY set isFinished to true if you have gathered sufficient signals, or continue with a logical follow-up question." : "- You MUST generate a nextQuestion."}
+RULES FOR CONTINUING VS FINISHING:
+- Minimum questions required: ${minQuestions}. Maximum limit: ${maxQuestions}. Currently on question ${qCount}.
+- DO NOT end the interview before question ${minQuestions}.
+- You must dynamically decide to set "isFinished": true ONLY IF:
+   1. You have asked at least ${minQuestions} questions (${minReached}).
+   2. You have successfully covered ALL required evaluation areas.
+   3. Your "evaluationConfidence" in making a final hiring decision is high (e.g., > 85%).
+- If the candidate gives short or poor answers, ask follow-ups or switch topics to gather enough data. DO NOT end early just because they struggle.
+- If you reach question ${maxQuestions} (${isLastQuestion}), you MUST end the interview ("isFinished": true).
 
-If generating a nextQuestion:
-- It must be a natural follow-up based on the candidate's answer, OR a new topic relevant to the role.
-- If the candidate mentioned a specific technology, framework, or challenge, ask a drill-down question on it.
-- Keep the question between 15-25 words.
+INSTRUCTIONS FOR NEXT QUESTION (if not finished):
+- Ensure a natural conversational flow. 
+- Use smooth transitions (e.g., "Let's discuss a technical aspect..." or "Moving on to your project experience...").
+- Generate a dynamic, adaptive question based on their previous answers or an uncovered topic.
+- Keep the next question between 15-25 words.
 - Vary difficulty progressively.
 
-Always respond in ${langLabel}.
+Always respond in English.
 
-Return ONLY valid JSON:
+Return ONLY a valid JSON object strictly matching this format:
 {
-  "feedback": "1-2 sentence feedback in ${langLabel}",
-  "isFinished": boolean,
-  "nextQuestion": "The next question text (omit if isFinished is true)"
+  "feedback": "1-2 sentence human-like feedback on their latest answer in English",
+  "evaluationConfidence": number (0-100),
+  "coveredTopics": ["List of required areas adequately covered so far"],
+  "isFinished": boolean (true ONLY if min questions met AND all areas covered AND confidence is high, OR if max questions reached),
+  "nextQuestion": "The next adaptive question (omit if isFinished is true)"
 }`
           },
           {
@@ -465,26 +428,15 @@ Return ONLY valid JSON:
           console.error("[Avatar Socket] AI parse error:", e.message);
         }
 
-        // Step 3: Translate feedback to Hindi if needed
-        let finalFeedback = parsed.feedback || "Thank you for your answer.";
-        let finalNextQuestion = parsed.nextQuestion || null;
-
-        if (language === "hi") {
-          finalFeedback = await translateText(finalFeedback, "hi");
-          if (finalNextQuestion) {
-            finalNextQuestion = await translateText(finalNextQuestion, "hi");
-          }
-        }
-
         // Emit feedback
-        socket.emit("avatar:reply", { text: finalFeedback, language })
+        socket.emit("avatar:reply", { text: parsed.feedback || "Thank you for your answer." })
         socket.emit("avatar:speaking_end")
 
         // Emit next question or interview complete
         if (parsed.isFinished || !parsed.nextQuestion) {
           socket.emit("avatar:interview_complete", { message: "Interview complete" });
         } else {
-          socket.emit("avatar:question_ready", { text: finalNextQuestion, language });
+          socket.emit("avatar:question_ready", { text: parsed.nextQuestion });
         }
 
       } catch (err) {
@@ -493,20 +445,16 @@ Return ONLY valid JSON:
       }
     })
 
-    // Client sends a question to be spoken (for multilingual question delivery)
-    socket.on("avatar:speak_question", async ({ question, language }) => {
+    // Client sends a question to be spoken
+    socket.on("avatar:speak_question", async ({ question }) => {
       try {
-        let finalQuestion = question
-        if (language === "hi") {
-          finalQuestion = await translateText(question, "hi")
-        }
-        socket.emit("avatar:question_ready", { text: finalQuestion, language })
+        socket.emit("avatar:question_ready", { text: question })
       } catch (err) {
-        socket.emit("avatar:question_ready", { text: question, language: "en" })
+        socket.emit("avatar:question_ready", { text: question })
       }
     })
 
-    socket.on("avatar:start_interview", async ({ role, experience, language }) => {
+    socket.on("avatar:start_interview", async ({ role, experience }) => {
       try {
         const messages = [
           {
@@ -519,17 +467,12 @@ Return ONLY valid JSON:
         
         // Remove quotes if the AI wrapped it
         firstQuestion = firstQuestion.replace(/^["']|["']$/g, '');
-
-        if (language === "hi") {
-          firstQuestion = await translateText(firstQuestion, "hi");
-        }
         
-        socket.emit("avatar:question_ready", { text: firstQuestion, language });
+        socket.emit("avatar:question_ready", { text: firstQuestion });
       } catch (err) {
         console.error("[Avatar Socket] Failed to generate start question:", err);
         socket.emit("avatar:question_ready", { 
-          text: language === 'hi' ? 'अपने बारे में और अपनी पृष्ठभूमि के बारे में बताइए।' : 'Tell me about yourself and your background.',
-          language 
+          text: 'Tell me about yourself and your background.'
         });
       }
     });

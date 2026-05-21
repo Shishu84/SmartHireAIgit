@@ -2,6 +2,7 @@ import React from 'react';
 import { BsRobot } from 'react-icons/bs';
 import { FaTwitter, FaLinkedin, FaGithub, FaInstagram } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 function Footer() {
   return (
@@ -13,8 +14,8 @@ function Footer() {
           {/* Column 1: Brand/About */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="bg-black text-white p-2 rounded-lg shadow-sm">
-                <BsRobot size={18} />
+              <div>
+                <img src={logo} alt="SmartHireAI Logo" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 tracking-tight">SmartHire.AI</h2>
             </div>

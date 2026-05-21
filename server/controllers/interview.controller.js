@@ -460,16 +460,16 @@ export const submitAnswer = async (req, res) => {
     }
 
 
-    const isLastQuestion = questionIndex >= 7; // Max 8 questions
-    const minQuestionsReached = questionIndex >= 3; // Min 4 questions (index 0,1,2,3)
+    const isLastQuestion = questionIndex >= 14; // Max 15 questions
+    const minQuestionsReached = questionIndex >= 4; // Min 5 questions
 
     const transcript = interview.questions.slice(0, questionIndex + 1).map((q, i) => `Q${i+1}: ${q.question}\nA${i+1}: ${i === questionIndex ? answer : q.answer}`).join("\n\n");
 
     const messages = [
       {
         role: "system",
-        content: `You are an AI-powered response evaluation engine acting as a professional technical interviewer.
-Your task is to generate dynamic, contextual feedback for the candidate's answer in real time.
+        content: `You are an expert AI Technical Recruiter conducting an adaptive interview.
+Your task is to generate dynamic, contextual feedback for the candidate's answer in real time, AND intelligently decide the next question or if the interview should end.
 
 Evaluate the candidate's answer strictly based on four metrics (score 0 to 10 for each):
 1. Relevance to question
@@ -477,16 +477,26 @@ Evaluate the candidate's answer strictly based on four metrics (score 0 to 10 fo
 3. Completeness of answer
 4. Communication clarity
 
-Generate dynamic feedback including:
-- "feedbackStatus": "Correct" OR "Partially correct" OR "Incorrect"
-- "explanation": "Explanation of why the answer received this status."
-- "improvement": "Specific improvement suggestions for the candidate."
+REQUIRED EVALUATION AREAS:
+1. Introduction & Background
+2. Core Technical Knowledge
+3. Problem Solving & Scenarios
+4. Project Experience
+5. Communication & Culture Fit
+
+RULES FOR CONTINUING VS FINISHING:
+- Minimum questions required: 5. Maximum limit: 15. Currently on question ${questionIndex + 1}.
+- DO NOT end the interview before reaching the minimum question count.
+- You must dynamically set "isFinished": true ONLY IF:
+   1. You have asked at least 5 questions (${minQuestionsReached}).
+   2. You have successfully covered ALL required evaluation areas.
+   3. Your "evaluationConfidence" in making a hiring decision is high (e.g., > 85%).
+- If the candidate gives short or poor answers, ask follow-ups or switch topics. DO NOT end early just because they struggle.
+- If you reach question 15 (${isLastQuestion}), you MUST end the interview ("isFinished": true).
 
 Based on the transcript, generate the NEXT question (unless you decide to finish the interview).
-- The next question should logically follow up on the candidate's answer or move to a new topic.
-- Maximum questions allowed is 8. You are currently evaluating question ${questionIndex + 1}.
-${minQuestionsReached ? "- You have reached the minimum required questions. You may choose to finish the interview by setting isFinished to true and omitting nextQuestion if you have enough signals." : "- You MUST generate a nextQuestion."}
-${isLastQuestion ? "- This is the final question. You MUST set isFinished to true and omit nextQuestion." : ""}
+- The next question should logically follow up on the candidate's answer or move to an uncovered topic.
+- Use smooth transitions (e.g., "Let's discuss a technical aspect..." or "Moving on to your project experience...").
 
 Return ONLY valid JSON in this exact format:
 {
@@ -498,9 +508,11 @@ Return ONLY valid JSON in this exact format:
   "feedbackStatus": "Correct / Partially correct / Incorrect",
   "explanation": "...",
   "improvement": "...",
+  "evaluationConfidence": number,
+  "coveredTopics": ["List of required areas adequately covered so far"],
   "isFinished": boolean,
   "nextQuestion": {
-    "question": "The next interview question text (15-25 words)",
+    "question": "The next adaptive interview question text (15-25 words)",
     "difficulty": "easy, medium, or hard",
     "timeLimit": 60, 90, or 120
   }

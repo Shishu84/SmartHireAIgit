@@ -1,14 +1,14 @@
 
 import { initializeApp } from "firebase/app";
-import {getAuth, GoogleAuthProvider} from "firebase/auth"
+import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"
 const firebaseConfig = {
-  apiKey: "AIzaSyCwhP5hOrx-8vGsA5UEiQ4RTcMEBZ58K_g",
-  authDomain: "smarthireai-6b0d0.firebaseapp.com",
-  projectId: "smarthireai-6b0d0",
-  storageBucket: "smarthireai-6b0d0.firebasestorage.app",
-  messagingSenderId: "332659816125",
-  appId: "1:332659816125:web:29d226b35c52567669a9d4",
-  measurementId: "G-WD7S7T8WV1"
+  apiKey: "AIzaSyDHzh5a95BKlK7HbrNkMLzAb_x_7FpElNw",
+  authDomain: "smarthireai26-17069.firebaseapp.com",
+  projectId: "smarthireai26-17069",
+  storageBucket: "smarthireai26-17069.firebasestorage.app",
+  messagingSenderId: "667891011042",
+  appId: "1:667891011042:web:2de7563ac0064193e33dbb",
+  measurementId: "G-BPX6K5K567"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -16,5 +16,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const provider = new GoogleAuthProvider()
+const githubProvider = new GithubAuthProvider()
 
-export {auth , provider}
+export { auth, provider, githubProvider }

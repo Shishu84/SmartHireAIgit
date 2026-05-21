@@ -37,8 +37,11 @@ function Step2Interview({ interviewData, onFinish }) {
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const mediaStreamRef = useRef(null);
-
   const currentQuestion = dynamicQuestions ? dynamicQuestions[currentIndex] : null;
+  const audioRef = useRef(null);
+  const aiAudioCtxRef = useRef(null);
+  const aiAnalyserRef = useRef(null);
+  const lipSyncRafRef = useRef(null);
   // Phase 1: Entry Countdown
   useEffect(() => {
     if (interviewPhase === 'entry') {
@@ -130,69 +133,130 @@ function Step2Interview({ interviewData, onFinish }) {
     };
   }, [isMicOn, interviewPhase]);
 
-  useEffect(() => {
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices.length) return;
-
-      const femaleVoice = voices.find(v => v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("female"));
-      if (femaleVoice) { setSelectedVoice(femaleVoice); setVoiceGender("female"); return; }
-
-      const maleVoice = voices.find(v => v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("male"));
-      if (maleVoice) { setSelectedVoice(maleVoice); setVoiceGender("male"); return; }
-
-      setSelectedVoice(voices[0]); setVoiceGender("female");
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
-
   const videoSource = voiceGender === "male" ? maleVideo : femaleVideo;
+
+  const toggleGender = () => {
+    setVoiceGender(prev => prev === "female" ? "male" : "female");
+  };
 
   /* ---------------- SPEAK FUNCTION ---------------- */
   const speakText = (text) => {
-    return new Promise((resolve) => {
-      if (!window.speechSynthesis || !selectedVoice) {
-        resolve();
-        return;
+    return new Promise(async (resolve) => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
-      window.speechSynthesis.cancel();
-      const humanText = text.replace(/,/g, ", ... ").replace(/\./g, ". ... ");
-      const utterance = new SpeechSynthesisUtterance(humanText);
-      utterance.voice = selectedVoice;
-      utterance.rate = 0.92;
-      utterance.pitch = 1.05;
-      utterance.volume = 1;
+      if (lipSyncRafRef.current) cancelAnimationFrame(lipSyncRafRef.current);
 
-      utterance.onstart = () => {
-        setIsAIPlaying(true);
-        stopMic();
-        const playPromise = videoRef.current?.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            // Ignore AbortError caused by pause() interrupting play()
+      const humanText = text.replace(/,/g, ", ... ").replace(/\./g, ". ... ");
+      setSubtitle(humanText);
+      setIsAIPlaying(true);
+      stopMic();
+
+      const playPromise = videoRef.current?.play();
+      if (playPromise !== undefined) playPromise.catch(() => {});
+
+      try {
+        const voice = voiceGender === "male" ? "Brian" : "Salli";
+        const audioUrl = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(humanText)}`;
+        
+        const audio = new Audio(audioUrl);
+        audio.crossOrigin = "anonymous";
+        audio.type = "audio/mpeg";
+        audioRef.current = audio;
+        
+        audio.playbackRate = 1.05;
+        audio.preservesPitch = true;
+
+        audio.onplay = () => {
+          if (!aiAudioCtxRef.current) {
+             aiAudioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (aiAudioCtxRef.current.state === 'suspended') {
+             aiAudioCtxRef.current.resume();
+          }
+          if (!aiAnalyserRef.current) {
+             aiAnalyserRef.current = aiAudioCtxRef.current.createAnalyser();
+             aiAnalyserRef.current.fftSize = 256;
+             aiAnalyserRef.current.smoothingTimeConstant = 0.2;
+          }
+
+          try {
+            const source = aiAudioCtxRef.current.createMediaElementSource(audio);
+            source.connect(aiAnalyserRef.current);
+            aiAnalyserRef.current.connect(aiAudioCtxRef.current.destination);
+          } catch(e) {
+            console.warn("AudioContext connect failed (likely CORS), falling back to basic play", e);
+          }
+
+          const dataArray = new Uint8Array(aiAnalyserRef.current.frequencyBinCount);
+          let silenceCount = 0;
+
+          const lipSyncLoop = () => {
+            if (!audioRef.current || audioRef.current.paused) return;
+            aiAnalyserRef.current.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const average = sum / dataArray.length;
+
+            if (average > 8) {
+              silenceCount = 0;
+              if (videoRef.current && videoRef.current.paused) {
+                videoRef.current.play().catch(()=>{});
+              }
+            } else {
+              silenceCount++;
+              if (silenceCount > 8) { 
+                if (videoRef.current && !videoRef.current.paused) {
+                  videoRef.current.pause();
+                }
+              }
+            }
+            lipSyncRafRef.current = requestAnimationFrame(lipSyncLoop);
+          };
+          lipSyncLoop();
+        };
+
+        const onEndCleanup = () => {
+          setIsAIPlaying(false);
+          setSubtitle("");
+          if (lipSyncRafRef.current) cancelAnimationFrame(lipSyncRafRef.current);
+          if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+          }
+          if (isMicOn) startMic();
+          setTimeout(() => resolve(), 300);
+        };
+
+        audio.onerror = (e) => {
+          console.error("Audio error:", audio.error);
+          onEndCleanup();
+        };
+
+        audio.onended = () => {
+          onEndCleanup();
+        };
+
+        const audioPlayPromise = audio.play();
+        if (audioPlayPromise !== undefined) {
+          audioPlayPromise.catch(error => {
+            console.error("Audio blocked:", error);
+            onEndCleanup();
           });
         }
-      };
-
-      utterance.onend = () => {
-        if (videoRef.current) {
-          videoRef.current.pause();
-          videoRef.current.currentTime = 0;
-        }
+      } catch (e) {
         setIsAIPlaying(false);
+        setSubtitle("");
+        if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }
         if (isMicOn) startMic();
-        setTimeout(() => { setSubtitle(""); resolve(); }, 300);
-      };
-
-      setSubtitle(text);
-      window.speechSynthesis.speak(utterance);
+        resolve();
+      }
     });
   };
 
   useEffect(() => {
-    if (!selectedVoice || interviewPhase !== 'active') return;
+    if (interviewPhase !== 'active') return;
 
     const runIntro = async () => {
       if (isIntroPhase) {
@@ -211,7 +275,7 @@ function Step2Interview({ interviewData, onFinish }) {
       }
     };
     runIntro();
-  }, [selectedVoice, isIntroPhase, currentIndex, interviewPhase]);
+  }, [isIntroPhase, currentIndex, interviewPhase]);
 
   useEffect(() => {
     if (isIntroPhase || interviewPhase !== 'active' || !currentQuestion || isPaused) return;
@@ -361,7 +425,11 @@ function Step2Interview({ interviewData, onFinish }) {
         recognitionRef.current.stop();
         recognitionRef.current.abort();
       }
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      if (lipSyncRafRef.current) cancelAnimationFrame(lipSyncRafRef.current);
     };
   }, []);
 
@@ -440,8 +508,14 @@ function Step2Interview({ interviewData, onFinish }) {
               muted
               playsInline
               preload="auto"
+              loop
               className="w-full h-auto object-cover"
             />
+            {/* Gender Toggle Button */}
+            <button onClick={toggleGender}
+              className="absolute top-3 right-3 bg-white/80 hover:bg-white text-gray-800 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition">
+              Swap to {voiceGender === "female" ? "Male" : "Female"} Voice
+            </button>
           </div>
 
           {/* subtitle */}

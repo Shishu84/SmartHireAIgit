@@ -1,31 +1,36 @@
-import React from 'react'
-import { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { FaTimes } from "react-icons/fa";
 import Auth from '../pages/Auth';
 
 function AuthModel({onClose}) {
     const {userData} = useSelector((state)=>state.user)
+    const modalRef = useRef()
 
     useEffect(()=>{
         if(userData){
             onClose()
         }
-
     },[userData , onClose])
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') onClose()
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [onClose])
+
+    const handleOutsideClick = (e) => {
+        if (modalRef.current && !modalRef.current.contains(e.target)) {
+            onClose()
+        }
+    }
+
   return (
-    <div className='fixed inset-0 z-[999] flex items-center justify-center bg-black/10 backdrop-blur-sm px-4'>
-        <div className='relative w-full max-w-md'>
-            <button onClick={onClose} className='absolute top-8 right-5 text-gray-800 hover:text-black text-xl'>
-             <FaTimes size={18}/>
-            </button>
-            <Auth isModel={true}/>
-
-
+    <div onClick={handleOutsideClick} className='fixed inset-0 z-[999] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm px-4 transition-all'>
+        <div ref={modalRef} className='w-full max-w-md'>
+            <Auth isModel={true} onClose={onClose}/>
         </div>
-
-      
     </div>
   )
 }

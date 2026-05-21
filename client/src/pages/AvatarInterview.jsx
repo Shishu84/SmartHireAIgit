@@ -14,7 +14,6 @@ const SOCKET_URL = 'http://localhost:8000'
 
 function AvatarInterviewComponent() {
   const navigate = useNavigate()
-  const [language, setLanguage] = useState('en')
   const [phase, setPhase] = useState('setup') // setup | active | done
   const [isMicOn, setIsMicOn] = useState(false)
   const [transcript, setTranscript] = useState('')
@@ -28,6 +27,8 @@ function AvatarInterviewComponent() {
   const [avatarGender, setAvatarGender] = useState('female')
   const [currentQ, setCurrentQ] = useState('')
   const [qIndex, setQIndex] = useState(0)
+  const [pendingNextQ, setPendingNextQ] = useState('')
+  const [pendingComplete, setPendingComplete] = useState(false)
   const [volumeLevel, setVolumeLevel] = useState(0)
 
   const [resumeFile, setResumeFile] = useState(null)
@@ -35,6 +36,11 @@ function AvatarInterviewComponent() {
   const [isResumeReady, setIsResumeReady] = useState(false) // true only after successful parse
   const [dynamicQuestions, setDynamicQuestions] = useState([])
   const [qaHistory, setQaHistory] = useState([])
+  const qaHistoryRef = useRef([])
+  useEffect(() => {
+    qaHistoryRef.current = qaHistory
+  }, [qaHistory])
+
   const [isSaving, setIsSaving] = useState(false)
   const [uploadError, setUploadError] = useState('')
 
@@ -49,6 +55,10 @@ function AvatarInterviewComponent() {
   const videoRef = useRef(null)
   const recognitionRef = useRef(null)
   const audioRef = useRef(null)
+  const aiAudioCtxRef = useRef(null)
+  const aiAnalyserRef = useRef(null)
+  const aiDelayNodeRef = useRef(null)
+  const lipSyncRafRef = useRef(null)
   const audioCtxRef = useRef(null)
   const analyserRef = useRef(null)
   const streamRef = useRef(null)
@@ -68,10 +78,10 @@ function AvatarInterviewComponent() {
       setTimeout(() => {
         if (dynamicQuestions.length > 0) {
           // If resume was uploaded, use the pre-generated AI question
-          socket.emit('avatar:speak_question', { question: dynamicQuestions[0], language })
+          socket.emit('avatar:speak_question', { question: dynamicQuestions[0] })
         } else {
           // Manual Mode: ask backend to dynamically generate the first question
-          socket.emit('avatar:start_interview', { role, experience, language })
+          socket.emit('avatar:start_interview', { role, experience })
         }
       }, 3500)
     })
@@ -96,21 +106,29 @@ function AvatarInterviewComponent() {
 
     // Adaptive: next question from server
     socket.on('avatar:question_ready', ({ text }) => {
-      setAvatarReply('')
-      setTranscript('')
-      setCurrentQ(text)
-      setSubtitle(text)
-      setQIndex(prev => prev + 1)
-      speakText(text)
+      setPendingNextQ(text)
     })
 
     // Dynamic completion: server signals when interview is done
     socket.on('avatar:interview_complete', () => {
-      finishAvatarInterview()
+      setPendingComplete(true)
     })
 
     return () => socket.disconnect()
   }, [phase])
+
+  // ── Auto-play first question ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (pendingNextQ && qIndex === 0) {
+      setAvatarReply('')
+      setTranscript('')
+      setCurrentQ(pendingNextQ)
+      setSubtitle(pendingNextQ)
+      setQIndex(1)
+      speakText(pendingNextQ)
+      setPendingNextQ('')
+    }
+  }, [pendingNextQ, qIndex])
 
   // ── Speech Recognition ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -119,14 +137,14 @@ function AvatarInterviewComponent() {
     const rec = new SpeechRecognition()
     rec.continuous = true
     rec.interimResults = true
-    rec.lang = language === 'hi' ? 'hi-IN' : 'en-US'
+    rec.lang = 'en-US'
     rec.onresult = (e) => {
       const t = Array.from(e.results).map(r => r[0].transcript).join('')
       setTranscript(t)
     }
     recognitionRef.current = rec
     return () => rec.abort()
-  }, [language])
+  }, [])
 
   // ── Audio Visualizer ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -139,7 +157,7 @@ function AvatarInterviewComponent() {
     }
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
       streamRef.current = stream
-      const ctx = new AudioContext()
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
       audioCtxRef.current = ctx
       const analyser = ctx.createAnalyser()
       analyserRef.current = analyser
@@ -159,74 +177,65 @@ function AvatarInterviewComponent() {
   }, [isMicOn])
 
   // ── Fully Free Neural TTS Engine (Amazon Polly Neural) ──────────────────────
-  const speakText = async (text) => {
-    // Cancel any ongoing audio gracefully
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
-    }
+  const speakText = (text) => {
+    // Stop any currently playing speech
+    window.speechSynthesis.cancel()
 
     setIsAISpeaking(true)
     setSubtitle(text)
-    
-    const playPromise = videoRef.current?.play()
-    if (playPromise !== undefined) {
-      playPromise.catch(e => console.warn("Video autoplay blocked/failed:", e))
-    }
 
     try {
-      // Fully Free Neural TTS Integration
-      // Uses high-quality Amazon Polly Neural models via a public proxy.
-      // This ensures a human-like voice experience out-of-the-box without keys or limits.
-      const voice = language === 'hi' 
-        ? 'Aditi' // Hindi Polly Voice (supports both genders relatively well for free tier)
-        : (avatarGender === 'male' ? 'Brian' : 'Salli'); // English Neural Voices
+      const utterance = new SpeechSynthesisUtterance(text)
       
-      const audioUrl = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`;
-
-      const audio = new Audio(audioUrl);
+      // Try to find a matching voice based on selected gender
+      const voices = window.speechSynthesis.getVoices()
+      if (voices.length > 0) {
+        const preferredVoice = voices.find(v => 
+          v.lang.startsWith('en') && 
+          (avatarGender === 'male' 
+            ? (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('guy')) 
+            : (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('samantha')))
+        )
+        if (preferredVoice) {
+          utterance.voice = preferredVoice
+        }
+      }
       
-      // 5. Verify MIME Type and Origin
-      audio.crossOrigin = "anonymous";
-      audio.type = "audio/mpeg"; // Enforce valid MIME type handling
-      audioRef.current = audio;
-      
-      // Styling parameters (Speed / Pitch control support)
-      audio.playbackRate = language === 'hi' ? 1.0 : 1.05;
-      audio.preservesPitch = true;
+      utterance.rate = 1.05
 
-      // 3. Add Audio Error Handling
-      audio.onerror = (e) => {
-        console.error("Audio playback error:", audio.error);
-        setIsAISpeaking(false);
-        setSubtitle('');
-        videoRef.current?.pause();
-      };
+      utterance.onstart = () => {
+        // Simple continuous lip sync: play the video loop while speaking
+        if (videoRef.current && videoRef.current.paused) {
+          videoRef.current.play().catch(()=>{})
+        }
+      }
 
-      audio.onended = () => {
+      utterance.onend = () => {
         setIsAISpeaking(false)
         setSubtitle('')
-        videoRef.current?.pause()
-        if (videoRef.current) videoRef.current.currentTime = 0
+        if (videoRef.current) {
+          videoRef.current.pause()
+          videoRef.current.currentTime = 0
+        }
       }
 
-      // Robust promise handling for audio play
-      const audioPlayPromise = audio.play();
-      if (audioPlayPromise !== undefined) {
-        audioPlayPromise.catch(error => {
-          console.error("Audio play blocked by browser:", error);
-          setIsAISpeaking(false);
-          setSubtitle('');
-          videoRef.current?.pause();
-        });
+      utterance.onerror = (e) => {
+        console.error("SpeechSynthesis error:", e)
+        setIsAISpeaking(false)
+        setSubtitle('')
+        if (videoRef.current) {
+          videoRef.current.pause()
+        }
       }
 
+      window.speechSynthesis.speak(utterance)
     } catch (error) {
-      console.error("Neural TTS failed:", error)
-      // Gracefully end speaking state so the interview can continue via text.
+      console.error("Native TTS failed:", error)
       setIsAISpeaking(false)
-      videoRef.current?.pause()
-      if (videoRef.current) videoRef.current.currentTime = 0
+      setSubtitle('')
+      if (videoRef.current) {
+        videoRef.current.pause()
+      }
     }
   }
 
@@ -263,12 +272,12 @@ function AvatarInterviewComponent() {
         if (firstQuestion) setDynamicQuestions([firstQuestion])
         setIsResumeReady(true)   // ✅ Path A satisfied
       } else {
-        setUploadError(language === 'en' ? 'Resume parsing failed. Please try manual input.' : 'रेज़्यूमे पार्स विफल। मैन्युअल इनपुट आज़माएं।')
+        setUploadError('Resume parsing failed. Please try manual input.')
         setResumeFile(null)
       }
     } catch (error) {
       console.error("Resume upload failed", error)
-      setUploadError(error.response?.data?.message || (language === 'en' ? 'Failed to process resume.' : 'रेज़्यूमे प्रोसेस करने में विफल।'))
+      setUploadError(error.response?.data?.message || ('Failed to process resume.'))
       setResumeFile(null)
       setIsResumeReady(false)
     } finally {
@@ -284,9 +293,7 @@ function AvatarInterviewComponent() {
     // Play the generic welcome greeting immediately.
     // The actual first question will be fetched from the backend AI via socket 3.5 seconds later.
     setTimeout(() => {
-      speakText(language === 'en'
-        ? `Hello! Welcome to your ${role} interview. Let's begin.`
-        : `नमस्ते! आपके ${role} साक्षात्कार में आपका स्वागत है। शुरू करते हैं।`
+      speakText(`Hello! Welcome to your ${role} interview. Let's begin.`
       )
     }, 500)
   }
@@ -309,7 +316,6 @@ function AvatarInterviewComponent() {
 
     socketRef.current.emit('candidate:answer', {
       transcript,
-      language,
       questionContext: currentQ,
       role,
       experience
@@ -324,31 +330,37 @@ function AvatarInterviewComponent() {
     setIsSaving(true);
     try {
       await axios.post(`${ServerUrl}/api/avatar/save-interview`, {
-        qaHistory,
+        qaHistory: qaHistoryRef.current,
         role,
-        experience,
-        language
+        experience
       }, { withCredentials: true });
     } catch (error) {
       console.error("Failed to save interview:", error);
-      alert(language === 'en' ? "Failed to save interview results." : "साक्षात्कार परिणाम सहेजने में विफल।");
+      alert("Failed to save interview results.");
     } finally {
       setIsSaving(false);
       setPhase('done');
     }
   };
 
-  // nextQuestion is now driven purely by the server via avatar:question_ready
-  // Kept as a manual fallback only when server doesn't emit a next question
   const nextQuestion = () => {
-    setAvatarReply('')
-    setTranscript('')
-    // Manual finish if AI doesn't auto-advance
-    finishAvatarInterview()
+    if (pendingComplete) {
+      finishAvatarInterview()
+      return
+    }
+    if (pendingNextQ) {
+      setAvatarReply('')
+      setTranscript('')
+      setCurrentQ(pendingNextQ)
+      setSubtitle(pendingNextQ)
+      setQIndex(prev => prev + 1)
+      speakText(pendingNextQ)
+      setPendingNextQ('')
+    }
   }
 
   const toggleLanguage = () => {
-    const newLang = language === 'en' ? 'hi' : 'en'
+    const newLang = 'hi'
     setLanguage(newLang)
   }
 
@@ -373,7 +385,7 @@ function AvatarInterviewComponent() {
           <button onClick={toggleLanguage}
             className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition">
             <BsGlobe2 size={14} />
-            {language === 'en' ? 'English' : 'हिंदी'}
+            {'English'}
           </button>
         </div>
 
@@ -391,12 +403,12 @@ function AvatarInterviewComponent() {
                 {isResumeReady ? <FaCheck size={10} /> : 'A'}
               </div>
               <span className="text-sm font-semibold text-white">
-                {language === 'en' ? 'Resume-Based Mode' : 'रेज़्यूमे आधारित मोड'}
+                {'Resume-Based Mode'}
               </span>
             </div>
             {isResumeReady && (
               <span className="text-xs font-bold text-green-400 bg-green-400/15 px-2 py-0.5 rounded-full">
-                {language === 'en' ? '✓ Ready' : '✓ तैयार'}
+                {'✓ Ready'}
               </span>
             )}
           </div>
@@ -424,10 +436,10 @@ function AvatarInterviewComponent() {
               )}
               <span className="font-medium text-sm">
                 {isUploading
-                  ? (language === 'en' ? 'Parsing resume...' : 'प्रोसेसिंग...')
+                  ? ('Parsing resume...')
                   : isResumeReady
                     ? resumeFile?.name
-                    : (language === 'en' ? 'Click to upload PDF / DOC' : 'पीडीएफ/डॉक अपलोड करें')}
+                    : ('Click to upload PDF / DOC')}
               </span>
             </div>
           </div>
@@ -444,9 +456,7 @@ function AvatarInterviewComponent() {
 
           {isResumeReady && role && (
             <p className="text-green-400/80 text-xs mt-2 text-center">
-              {language === 'en'
-                ? `✓ Parsed: ${role} · ${experience}`
-                : `✓ पार्स हुआ: ${role} · ${experience}`}
+              {`✓ Parsed: ${role} · ${experience}`}
             </p>
           )}
         </div>
@@ -472,17 +482,17 @@ function AvatarInterviewComponent() {
                 {isManualReady ? <FaCheck size={10} /> : 'B'}
               </div>
               <span className="text-sm font-semibold text-white">
-                {language === 'en' ? 'Manual Mode' : 'मैन्युअल मोड'}
+                {'Manual Mode'}
               </span>
             </div>
             {!isManualReady && (
               <span className="text-xs text-white/40">
-                {language === 'en' ? 'Role + Level required' : 'भूमिका + स्तर आवश्यक'}
+                {'Role + Level required'}
               </span>
             )}
             {isManualReady && !isResumeReady && (
               <span className="text-xs font-bold text-purple-400 bg-purple-400/15 px-2 py-0.5 rounded-full">
-                {language === 'en' ? '✓ Ready' : '✓ तैयार'}
+                {'✓ Ready'}
               </span>
             )}
           </div>
@@ -498,7 +508,7 @@ function AvatarInterviewComponent() {
                       ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
                       : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
                   }`}>
-                  {language === 'en' ? '♀ Female' : '♀ महिला'}
+                  {' Female'}
                 </button>
                 <button onClick={() => setAvatarGender('male')}
                   className={`flex-1 py-2.5 rounded-xl border transition text-sm font-medium ${
@@ -506,7 +516,7 @@ function AvatarInterviewComponent() {
                       ? 'bg-gradient-to-r from-purple-500/40 to-pink-500/40 border-purple-400 text-white'
                       : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'
                   }`}>
-                  {language === 'en' ? '♂ Male' : '♂ पुरुष'}
+                  {'Male'}
                 </button>
               </div>
             </div>
@@ -514,11 +524,11 @@ function AvatarInterviewComponent() {
             {/* Job Role */}
             <div>
               <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center gap-1 justify-between">
-                <span>{language === 'en' ? 'Job Role' : 'पद'}</span>
+                <span>{'Job Role'}</span>
                 {!role.trim() && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
               </label>
               <input value={role} onChange={e => setRole(e.target.value)}
-                placeholder={language === 'en' ? 'e.g. Frontend Developer' : 'जैसे: फ्रंटेंड डेवलपर'}
+                placeholder={'e.g. Frontend Developer'}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none focus:border-purple-400 transition ${
                   role.trim() ? 'border-purple-400/50' : 'border-white/10'
                 }`} />
@@ -527,14 +537,14 @@ function AvatarInterviewComponent() {
             {/* Experience */}
             <div>
               <label className="text-xs text-white/50 uppercase tracking-wider font-semibold mb-1 flex items-center justify-between">
-                <span>{language === 'en' ? 'Experience Level' : 'अनुभव स्तर'}</span>
+                <span>{'Experience Level'}</span>
                 {!experience && <span className="text-yellow-400/70 normal-case font-normal">Required</span>}
               </label>
               <select value={experience} onChange={e => setExperience(e.target.value)}
                 className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white outline-none focus:border-purple-400 transition ${
                   experience ? 'border-purple-400/50' : 'border-white/10'
                 }`}>
-                <option value="" className="text-black">{language === 'en' ? 'Select level' : 'स्तर चुनें'}</option>
+                <option value="" className="text-black">{'Select level'}</option>
                 <option value="Fresher" className="text-black">Fresher</option>
                 <option value="1-2 years" className="text-black">1–2 Years</option>
                 <option value="3-5 years" className="text-black">3–5 Years</option>
@@ -550,9 +560,7 @@ function AvatarInterviewComponent() {
             <motion.p
               initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="text-white/40 text-xs text-center mb-4">
-              {language === 'en'
-                ? 'Upload a resume  OR  fill Job Role + Experience to continue'
-                : 'जारी रखने के लिए रेज़्यूमे अपलोड करें या भूमिका + स्तर भरें'}
+              {'Upload a resume  OR  fill Job Role + Experience to continue'}
             </motion.p>
           )}
         </AnimatePresence>
@@ -560,7 +568,7 @@ function AvatarInterviewComponent() {
         {/* ── Start Button ────────────────────────────────────────────────── */}
         <button onClick={startSession} disabled={!canStart || isUploading}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold text-white hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-          {language === 'en' ? 'Start Interview' : 'साक्षात्कार शुरू करें'} <BsArrowRight />
+          {'Start Interview'} <BsArrowRight />
         </button>
       </motion.div>
     </div>
@@ -572,18 +580,21 @@ function AvatarInterviewComponent() {
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="text-center text-white max-w-md w-full">
         <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🎉</div>
-        <h2 className="text-3xl font-bold mb-3">{language === 'en' ? 'Interview Complete!' : 'साक्षात्कार पूर्ण!'}</h2>
-        <p className="text-white/60 mb-8">{language === 'en' ? 'Great job! You answered all questions.' : 'बहुत अच्छा! आपने सभी प्रश्नों के उत्तर दिए।'}</p>
+        <h2 className="text-3xl font-bold mb-3">{'Interview Complete!'}</h2>
+        <p className="text-white/60 mb-8">
+          {'Great job! You answered all questions.'}
+          <span className="block mt-3 text-white font-semibold text-lg">Total Questions: {qIndex}</span>
+        </p>
 
         <div className="flex flex-col gap-3">
           <button onClick={() => navigate('/history')}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-4 rounded-2xl font-bold hover:opacity-90 transition">
-            {language === 'en' ? 'Go to Dashboard' : 'डैशबोर्ड पर जाएँ'}
+            {'Go to Dashboard'}
           </button>
 
-          <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0) }}
+          <button onClick={() => { setPhase('setup'); setMessages([]); setQIndex(0); setPendingNextQ(''); setPendingComplete(false); }}
             className="w-full bg-white/10 backdrop-blur border border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition">
-            {language === 'en' ? 'Start New Interview' : 'नया साक्षात्कार शुरू करें'}
+            {'Start New Interview'}
           </button>
         </div>
       </motion.div>
@@ -604,13 +615,13 @@ function AvatarInterviewComponent() {
             {isAISpeaking && (
               <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-white text-xs font-medium">{language === 'en' ? 'AI Speaking' : 'AI बोल रही है'}</span>
+                <span className="text-white text-xs font-medium">{'AI Speaking'}</span>
               </div>
             )}
             {/* Language Badge */}
             <button onClick={toggleLanguage}
               className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-1 hover:opacity-90 transition">
-              <BsGlobe2 size={12} /> {language === 'en' ? 'EN' : 'हिं'}
+              <BsGlobe2 size={12} /> {'EN'}
             </button>
           </div>
 
@@ -625,18 +636,20 @@ function AvatarInterviewComponent() {
           </AnimatePresence>
 
           {/* Progress */}
-          <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4 flex justify-between items-center">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white">{qIndex + 1}</p>
-              <p className="text-white/40 text-xs uppercase tracking-wider">{language === 'en' ? 'Current' : 'वर्तमान'}</p>
+          <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <span className="text-xl font-bold text-white">{qIndex || 1}</span>
+              </div>
+              <div>
+                <p className="text-white font-bold">Current Question</p>
+                <p className="text-white/40 text-xs">AI is evaluating dynamically</p>
+              </div>
             </div>
-            <div className="h-1 flex-1 mx-4 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-                style={{ width: `${((qIndex + 1) / 8) * 100}%` }} />
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white/40">8</p>
-              <p className="text-white/40 text-xs uppercase tracking-wider">{language === 'en' ? 'Total' : 'कुल'}</p>
+            <div className="flex gap-1.5 mr-2">
+              {[...Array(3)].map((_, i) => (
+                <span key={i} className="w-2 h-2 bg-green-400 rounded-full animate-ping" style={{ animationDelay: `${i * 0.2}s`, animationDuration: '1.5s' }} />
+              ))}
             </div>
           </div>
         </div>
@@ -657,7 +670,7 @@ function AvatarInterviewComponent() {
             <motion.div key={qIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
               className="bg-white/5 backdrop-blur border border-purple-400/30 rounded-2xl p-6">
               <p className="text-xs text-purple-300 uppercase tracking-wider font-semibold mb-2">
-                {language === 'en' ? `Question ${qIndex + 1}` : `प्रश्न ${qIndex + 1}`}
+                {`Question ${qIndex || 1}`}
               </p>
               <p className="text-white text-lg font-medium leading-relaxed">{currentQ}</p>
             </motion.div>
@@ -667,7 +680,7 @@ function AvatarInterviewComponent() {
           <div className="flex-1 bg-black/20 backdrop-blur border border-white/5 rounded-2xl p-4 overflow-y-auto space-y-3 max-h-60">
             {messages.length === 0 && (
               <p className="text-white/20 text-sm text-center mt-4">
-                {language === 'en' ? 'Your conversation will appear here.' : 'आपकी बातचीत यहाँ दिखाई देगी।'}
+                {'Your conversation will appear here.'}
               </p>
             )}
             {messages.map((m, i) => (
@@ -688,9 +701,7 @@ function AvatarInterviewComponent() {
             <textarea
               value={transcript}
               onChange={e => setTranscript(e.target.value)}
-              placeholder={language === 'en'
-                ? 'Speak or type your answer here...'
-                : 'अपना उत्तर बोलें या यहाँ टाइप करें...'}
+              placeholder={'Speak or type your answer here...'}
               rows={3}
               className="w-full bg-transparent text-white placeholder-white/20 resize-none outline-none text-sm"
             />
@@ -724,26 +735,26 @@ function AvatarInterviewComponent() {
               <motion.button whileTap={{ scale: 0.97 }} onClick={submitAnswer}
                 disabled={!transcript.trim() || isAISpeaking}
                 className="flex-1 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
-                {language === 'en' ? 'Submit Answer' : 'उत्तर जमा करें'} <BsArrowRight />
+                {'Submit Answer'} <BsArrowRight />
               </motion.button>
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white/5 backdrop-blur border border-green-400/20 rounded-2xl p-5">
               <p className="text-xs text-green-400 uppercase tracking-wider font-semibold mb-2">
-                {language === 'en' ? 'AI Feedback' : 'AI प्रतिक्रिया'}
+                {'AI Feedback'}
               </p>
               <p className="text-white/80 text-sm leading-relaxed mb-4">{avatarReply}</p>
               <button onClick={nextQuestion}
-                disabled={isSaving}
+                disabled={isSaving || (!pendingNextQ && !pendingComplete)}
                 className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-white hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50">
                 {isSaving ? (
-                  <><FaSpinner className="animate-spin" /> {language === 'en' ? 'Saving...' : 'सहेज रहा है...'}</>
+                  <><FaSpinner className="animate-spin" /> {'Saving...'}</>
                 ) : (
                   <>
-                    {qIndex + 1 >= 8
-                      ? (language === 'en' ? 'Finish Interview' : 'साक्षात्कार समाप्त करें')
-                      : (language === 'en' ? 'Next Question' : 'अगला प्रश्न')
+                    {pendingComplete
+                      ? ('Finish Interview')
+                      : ('Next Question')
                     } <BsArrowRight />
                   </>
                 )}

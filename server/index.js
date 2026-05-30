@@ -22,7 +22,9 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174"
+  "http://127.0.0.1:5174",
+  "https://smarthireai-feym.onrender.com",
+   process.env.CLIENT_URL
 ]
 
 const io = new Server(server, {
@@ -56,7 +58,8 @@ const avatarNs = io.of("/avatar-interview")
 registerAvatarSocket(avatarNs)
 
 const PORT = process.env.PORT || 6000
+connectDb()
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
-  connectDb()
+
 })
